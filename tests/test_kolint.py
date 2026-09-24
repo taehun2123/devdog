@@ -149,6 +149,11 @@ class Commit(unittest.TestCase):
         self.assertEqual(self.lint('ci: 빌더 상태 유지\n\n- 캐시 업로드 325초 소요\n- 앱 재빌드 필요'), [])
         self.assertIn('commit-body-style', self.lint('fix: 오류 수정\n\n- 재시작하면 돼요'))
 
+    def test_scissors(self):
+        msg = ('fix: 오류 수정\n\n- 원인 제거\n# ------------------------ >8 ------------------------\n'
+               'diff --git a/x b/x\n+서버가 죽으면 재시작한다.\n')
+        self.assertEqual(self.lint(msg), [])
+
     def test_file_list(self):
         self.assertIn('commit-file-list', self.lint('fix: RecruitmentServiceImpl.java 수정'))
         self.assertIn('commit-file-list', self.lint('refactor: fetchMe() 분리'))

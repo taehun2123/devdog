@@ -3,7 +3,7 @@
 README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 다시 생성한다.
   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   for t in light dark; do "$CHROME" --headless=new --hide-scrollbars --force-device-scale-factor=2 \
-    --window-size=1200,880 --screenshot=docs/assets/before-after-$t.png \
+    --window-size=1200,980 --screenshot=docs/assets/before-after-$t.png \
     "file://$PWD/docs/assets/before-after.html?theme=$t"; done
 -->
 <html lang="ko">
@@ -69,7 +69,7 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
         <h1>공학 문서체 적용 전후</h1>
       </div>
     </div>
-    <div class="score">kolint 검출 <span class="bad">15건</span> → <span class="good">0건</span></div>
+    <div class="score">kolint 검출 <span class="bad">17건</span> → <span class="good">0건</span></div>
   </header>
 
   <div class="grid">
@@ -94,10 +94,14 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
       <tr><td>대기</td><td>아직 <mark>응답을 받지 못함</mark></td></tr>
       <tr><td>실패</td><td>1회 실패했으나 <mark>재시도를 중단하지 않음</mark></td></tr></table></div>
 
-    <div class="label">커밋 제목</div>
-    <div class="cell bad"><span class="mono">docs:</span> 캐시 문서를 <mark>추가했다</mark>
-      <div class="tags"><span class="tag">commit-subject</span><span class="tag">커밋 훅이 실행 거부</span></div></div>
-    <div class="cell good"><span class="mono">docs:</span> 캐시 문서 <mark>추가</mark></div>
+    <div class="label">커밋 메시지</div>
+    <div class="cell bad"><span class="mono">docs:</span> 캐시 문서를 <mark>추가했다</mark><br>
+      캐시 키 규칙과 만료 시간을 <mark>정리했습니다.</mark><br>
+      <span class="mono"><mark>Co-Authored-By: Claude Opus 5.5</mark></span>
+      <div class="tags"><span class="tag">commit-subject</span><span class="tag">commit-body-style</span><span class="tag">commit-signature</span><span class="tag">커밋 훅이 실행 거부</span></div></div>
+    <div class="cell good"><span class="mono">docs:</span> 캐시 문서 <mark>추가</mark><br>
+      <mark>- 캐시 키 규칙 정리</mark><br>
+      <mark>- 만료 시간 정리</mark></div>
 
     <div class="label">코드 주석</div>
     <div class="cell bad"><span class="mono">//</span> 여기서 <mark>죽으면</mark> 앱이 안 <mark>뜬다</mark>.
@@ -106,7 +110,7 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
   </div>
 
   <footer>
-    본문·표 칸: 비교 실험 rewrite 케이스의 실제 출력 (Sonnet, 플러그인 적용) · 커밋 제목: 커밋 훅이 거부한 뒤 Claude가 다시 작성한 결과 · 코드 주석: 실제 저장소 정리 사례
+    본문·표 칸: 비교 실험 rewrite 케이스의 실제 출력 (Sonnet, 플러그인 적용) · 커밋 메시지: 커밋 훅이 거부한 뒤 Claude(Sonnet)가 다시 작성한 결과 · 코드 주석: 실제 저장소 정리 사례
   </footer>
 </div>
 </body>

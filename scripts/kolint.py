@@ -437,6 +437,8 @@ EMOJI = re.compile('[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B50\u2B55\uFE0F]')
 
 def lint_commit(msg, cfg, path='COMMIT_EDITMSG'):
     out = []
+    # git commit -v가 붙이는 구분선 아래 디프는 메시지가 아니다
+    msg = re.split(r'^# -+ >8 -+$', msg, maxsplit=1, flags=re.M)[0]
     lines = [l for l in msg.split('\n') if not l.startswith('#')]
     while lines and not lines[0].strip():
         lines.pop(0)

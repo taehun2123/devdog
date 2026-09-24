@@ -25,7 +25,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/before-after-dark.png">
-  <img src="docs/assets/before-after-light.png" width="100%" alt="공학 문서체 적용 전후 비교. 제목, 본문, 표 칸, 커밋 제목, 코드 주석 5개 요소의 수정 전 문장과 수정 후 문장을 나란히 표시하며, kolint 검출 건수는 15건에서 0건으로 감소">
+  <img src="docs/assets/before-after-light.png" width="100%" alt="공학 문서체 적용 전후 비교. 제목, 본문, 표 칸, 커밋 메시지, 코드 주석 5개 요소의 수정 전 문장과 수정 후 문장을 나란히 표시하며, kolint 검출 건수는 17건에서 0건으로 감소">
 </picture>
 
 ```diff
@@ -41,13 +41,20 @@
 + | 대기 | 아직 응답을 받지 못함 |
 
 - docs: 캐시 문서를 추가했다
+-
+- 캐시 키 규칙과 만료 시간을 정리했습니다.
+-
+- Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 + docs: 캐시 문서 추가
++
++ - 캐시 키 규칙 정리
++ - 만료 시간 정리
 
 - // 여기서 죽으면 앱이 안 뜬다.
 + // 여기서 예외가 발생하면 앱이 기동하지 않는다.
 ```
 
-본문·표 칸의 수정 후 문장은 [비교 실험](evals/README.md) rewrite 케이스에서 플러그인을 적용한 실제 출력입니다. 커밋 제목은 커밋 훅이 거부한 뒤 Claude가 다시 작성한 결과입니다. 이미지 원본은 [docs/assets/before-after.html](docs/assets/before-after.html)입니다.
+본문·표 칸의 수정 후 문장은 [비교 실험](evals/README.md) rewrite 케이스에서 플러그인을 적용한 실제 출력입니다. 커밋 메시지는 커밋 훅이 제목·본문·서명 위반으로 거부한 뒤 Sonnet이 다시 작성한 실제 결과입니다. 이미지 원본은 [docs/assets/before-after.html](docs/assets/before-after.html)입니다.
 
 ### 구성 요소
 
@@ -76,7 +83,9 @@ claude plugin install devdog@devdog
 
 ### 자동 적용
 
-설치 후 한국어 문서·주석·커밋을 요청하면 작성 스킬이 적용됩니다. Claude가 파일을 쓰면 훅이 변경된 줄을 검사하고, error 등급 위반이 있으면 같은 턴에서 수정하도록 전달합니다.
+설치 후 한국어 문서·주석·커밋을 요청하면 작성 스킬이 적용됩니다. Claude가 파일을 쓰면 PostToolUse 훅이 변경된 줄을 검사하고, error 등급 위반이 있으면 같은 턴에서 수정하도록 전달합니다.
+
+Claude가 `git commit`을 실행하면 PreToolUse 훅이 실행 전에 커밋 메시지의 제목과 본문을 검사합니다. error 등급 위반이 있으면 실행을 거부하고 사유를 전달합니다. Claude는 사유에 따라 메시지를 고쳐 다시 커밋합니다.
 
 ### 직접 검사
 
@@ -86,7 +95,16 @@ python3 scripts/kolint.py --json docs/ > report.json  # JSON 출력
 python3 scripts/kolint.py --commit-msg .git/COMMIT_EDITMSG
 ```
 
-error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `commit-msg` 훅에 연결할 수 있습니다.
+error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git 훅에 연결할 수 있습니다. 사람이 직접 하는 커밋도 검사하려면 저장소를 클론한 뒤 대상 저장소의 `commit-msg` 훅에 연결하십시오.
+
+```bash
+git clone https://github.com/taehun2123/devdog ~/devdog
+cat > .git/hooks/commit-msg <<'HOOK'
+#!/bin/sh
+python3 ~/devdog/scripts/kolint.py --commit-msg "$1"
+HOOK
+chmod +x .git/hooks/commit-msg
+```
 
 ### 기존 저장소 전환
 
@@ -94,26 +112,44 @@ error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `c
 
 ## 4. 검사 규칙
 
+### 문서·코드 주석
+
 | 규칙 | 등급 | 검출 대상 |
 |---|---|---|
 | `heading-sentence` | error | 문장·의문문·"~때"·조사로 끝나는 제목 |
 | `table-cell-sentence` | error | "~다"로 끝나는 한 문장 표 칸 |
 | `register-mix` | error | 설정한 말투와 다른 종결어미 |
 | `filler` | error | "이게 전부입니다", "~하는 셈입니다" 등 부연 문장 |
-| `commit-subject` | error | 문장형으로 끝나는 커밋 제목 |
-| `commit-body-separator` | error | 커밋 제목과 본문 사이 빈 줄 누락 |
-| `commit-body-style` | error | 개조식이 아닌 문장형 커밋 본문 (`commitBody: bullet`일 때) |
-| `commit-signature` | error | `Co-Authored-By: Claude`, `🤖 Generated with` 등 AI 도구 서명 |
-| `commit-emoji` | error | 커밋 메시지의 이모지 |
-| `commit-trailer` | error | 설정으로 금지한 커밋 트레일러 |
-| `commit-file-list` | warn | 커밋 제목·본문 항목의 파일·함수 이름 나열 |
-
-Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 추가합니다. `commit-signature` 규칙은 이 커밋을 거부하므로 Claude가 트레일러를 빼고 다시 커밋합니다. 트레일러를 유지하려면 설정의 `rules`에서 `commit-signature`를 `off`로 지정하십시오.
 | `metaphor` | warn | 비유·의인화·대화체 어휘 약 50종 |
 | `em-dash-aside` | warn | 긴 대시 부가 설명 |
 | `particle-spacing` | warn | 영문·코드·숫자 뒤 조사 띄어쓰기 |
 
 코드 블록, 인라인 코드, 따옴표, URL, 인용 블록의 말투, 예시 문장 열("수정 전", "표현" 등)은 검사하지 않습니다. 줄 끝에 `kolint-disable-line`, 앞 줄에 `kolint-disable-next-line` 주석을 두면 해당 줄을 제외합니다.
+
+### 커밋 메시지
+
+제목은 명사형 요약, 본문은 빈 줄 뒤 변경 이유를 짧은 개조식으로 작성하는 형식이 기준입니다.
+
+```text
+fix(auth): 토큰 갱신 실패 오류 수정
+
+- 만료 7일 전 갱신 요청이 401로 거절되던 원인 제거
+- 리프레시 토큰 만료 임박 시 재발급
+```
+
+| 규칙 | 등급 | 검출 대상 |
+|---|---|---|
+| `commit-subject` | error | "~했다", "~한다", 해요체, 마침표로 끝나는 제목 |
+| `commit-body-separator` | error | 제목과 본문 사이 빈 줄 누락 |
+| `commit-body-style` | error | "~했습니다", "~한다" 등 문장형으로 끝나는 본문 항목 (`commitBody: bullet`일 때) |
+| `commit-signature` | error | `Co-Authored-By: Claude`, `🤖 Generated with` 등 AI 도구 서명 |
+| `commit-emoji` | error | 제목·본문의 이모지 |
+| `commit-trailer` | error | 설정으로 금지한 트레일러 |
+| `commit-file-list` | warn | 제목·본문 항목의 파일·함수 이름 나열 |
+
+문서 규칙 중 `metaphor`, `filler`, `em-dash-aside`, `particle-spacing`은 커밋 메시지에도 적용됩니다. `git commit -v`가 붙이는 구분선 아래 디프는 검사하지 않습니다.
+
+Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 추가합니다. `commit-signature` 규칙은 이 커밋을 거부하므로 Claude가 트레일러를 빼고 다시 커밋합니다. 트레일러를 유지하려면 설정의 `rules`에서 `commit-signature`를 `off`로 지정하십시오.
 
 ## 5. 문제 정의
 
@@ -144,11 +180,14 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 | 긴 대시 | 조건·이유·예외가 한 문장에 섞여 절차 문장이 길어짐 |
 | 부연 문장 | 정보 없는 문장만큼 읽는 시간 증가 |
 | 문장형 커밋 제목 | `git log --oneline` 목록에서 변경 대상 확인 지연 |
+| 문장형 커밋 본문 | 변경 이유를 찾으려면 문장 전체를 읽어야 함 |
+| 커밋 메시지의 AI 도구 서명 | 변경과 무관한 줄이 히스토리와 검색 결과에 추가됨 |
 
 ### 발생 원인
 
 - AI 모델은 영어 기술 문서의 구조를 한국어로 옮긴 문장을 자주 생성합니다. 이 저장소의 [비교 실험](evals/README.md)에서 사용자 설정 없이 실행한 Sonnet은 런북 2회 모두 표 칸을 "~다" 문장으로 작성했습니다.
-- 규칙을 `CLAUDE.md` 같은 지침 파일에만 기록하면 준수 여부를 확인하는 단계가 없습니다. 위반은 사람이 리뷰에서 찾아야 합니다.
+- 규칙을 `CLAUDE.md` 같은 지침 파일에만 기록하면 준수 여부를 확인하는 단계가 없습니다. 위반은 사람이 리뷰에서 찾아야 합니다. 이 저장소의 초기 커밋 9개 중 7개도 "본문은 짧은 개조식" 규칙이 지침에 있었는데 Claude가 서술형 본문으로 작성했습니다.
+- Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 추가합니다. 도구 서명을 금지하는 팀은 매 커밋에서 직접 지워야 합니다.
 - 코드 주석과 커밋 메시지는 문서 검사 도구의 검사 대상이 아닙니다. 2026-09 기준으로 조사한 한국어 문체 도구 8개 중 코드 주석을 검사하는 도구는 없었습니다.
 - 검사 단계가 없으면 정리를 마친 저장소에도 새 작업에서 같은 유형의 표현이 추가될 수 있습니다.
 
@@ -158,7 +197,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 |---|---|---|
 | 작성 단계의 규칙 적용 | 작성 스킬 | 요소별 말투와 명사형 제목·표 칸 적용 |
 | 작성 직후 위반 수정 | PostToolUse 훅, `kolint.py` | error 등급 위반을 같은 턴에서 수정 |
-| 커밋 제목 검사 | PreToolUse 훅 | 문장형 제목 커밋 거부 |
+| 커밋 메시지 검사 | PreToolUse 훅 | 문장형 제목·본문, AI 도구 서명, 이모지가 있는 커밋 거부 |
 | 기존 저장소 정리 | 전환 스킬과 도구 | 주석 정리 시 코드 줄 변경 0건 |
 | 의미 보존 | 스킬의 최우선 원칙 | 요청에 포함된 숫자·명령·경로 누락 0건 |
 
@@ -171,7 +210,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 | 항목 | 범용 한국어 플러그인 | DevDog |
 |---|---|---|
 | 목표 | 사람다운 글 | 사실·조건·절차를 한 번에 찾는 글 |
-| 적용 대상 | 채팅 답변, Markdown | Markdown, 커밋 메시지, 코드 주석 |
+| 적용 대상 | 채팅 답변, Markdown | Markdown, 커밋 메시지(제목·본문), 코드 주석 |
 | 말투 규칙 | 전체 일관성 | 요소별 규칙(본문 `~입니다`, 절차 `~하십시오`, 제목·표 칸 명사형) |
 | 어휘 | 번역투 일반 | 개발 문맥의 비유·의인화 사전("서버가 넘어졌다" → "서버 오류") |
 | 외래어 | 순화어 권장 경우 있음 | 통용 외래어 우선(커밋, 머지, 스펙) |
@@ -191,6 +230,8 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 | 익명화 fixture 오탐 | 0건 |
 
 수정 전 줄 검출률이 50% 미만인 이유는 번역투 재구성처럼 정규식으로 판별할 수 없는 수정이 포함되기 때문입니다. 이 영역은 작성 스킬이 담당합니다. 검사기는 오탐을 줄이는 방향으로 조정했습니다.
+
+커밋 규칙은 같은 서비스의 커밋 86개(2026-09-15 이후, 병합 커밋 제외)에 적용했습니다. 커밋 규칙 검출은 1건이며, 실제 서술형 본문입니다.
 
 플러그인 있음·없음 비교 결과는 [evals/README.md](evals/README.md)에 있습니다. 같은 요청에서 kolint error 위반은 플러그인 없음 5건, 있음 0건이었습니다. 요청에 포함된 숫자·명령 누락은 두 조건 모두 0건입니다.
 
@@ -226,7 +267,9 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 
 - 형태소 분석 없이 정규식으로 검사합니다. 동음이의어(예: 실제 그림을 "그린다")는 warn 등급으로 보고되며, 문맥 판단은 Claude나 사람이 합니다.
 - 번역투 문장 구조, 불필요한 명사화, 문장 길이는 검사하지 않습니다.
-- 커밋 검사 훅은 `-m`, `--message`, `-F` 형식만 확인합니다. 편집기로 작성한 커밋 메시지는 `--commit-msg` 옵션을 git 훅에 연결하십시오.
+- 커밋 검사 훅은 `-m`, `--message`, `-F` 형식만 확인합니다. 편집기로 작성한 커밋 메시지는 [직접 검사](#직접-검사)의 `commit-msg` 훅으로 검사하십시오.
+- `commit-body-style`은 본문 항목의 끝 어미만 확인합니다. 명사형으로 끝나는 긴 서술 문장이나 변경 내용만 나열한 본문은 검출하지 않습니다.
+- PR 본문(`gh pr create --body`)은 검사하지 않습니다.
 
 ## 9. 기여
 
