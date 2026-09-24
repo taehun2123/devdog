@@ -62,9 +62,9 @@
 |---|---|---|
 | 작성 스킬 `devdog:writing` | `skills/writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
 | 전환 스킬 `devdog:migrate` | `skills/migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
-| 검사기 | `scripts/kolint.py` | 규칙 14종 검사, CLI·훅 겸용 |
+| 검사기 | `scripts/kolint.py` | 규칙 17종 검사, CLI·훅 겸용 |
 | 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
-| 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit` 메시지의 제목·본문 검사, 위반 시 실행 거부 |
+| 커밋·PR 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit`, `gh pr create·edit`의 제목·본문 검사, 위반 시 실행 거부 |
 | 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
 | 출력 스타일 `devdog` | `output-styles/devdog.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
 
@@ -85,7 +85,7 @@ claude plugin install devdog@devdog
 
 설치 후 한국어 문서·주석·커밋을 요청하면 작성 스킬이 적용됩니다. Claude가 파일을 쓰면 PostToolUse 훅이 변경된 줄을 검사하고, error 등급 위반이 있으면 같은 턴에서 수정하도록 전달합니다.
 
-Claude가 `git commit`을 실행하면 PreToolUse 훅이 실행 전에 커밋 메시지의 제목과 본문을 검사합니다. error 등급 위반이 있으면 실행을 거부하고 사유를 전달합니다. Claude는 사유에 따라 메시지를 고쳐 다시 커밋합니다.
+Claude가 `git commit`이나 `gh pr create`·`gh pr edit`을 실행하면 PreToolUse 훅이 실행 전에 제목과 본문을 검사합니다. error 등급 위반이 있으면 실행을 거부하고 사유를 전달합니다. Claude는 사유에 따라 메시지를 고쳐 다시 실행합니다.
 
 ### 직접 검사
 
@@ -126,7 +126,7 @@ chmod +x .git/hooks/commit-msg
 
 코드 블록, 인라인 코드, 따옴표, URL, 인용 블록의 말투, 예시 문장 열("수정 전", "표현" 등)은 검사하지 않습니다. 줄 끝에 `kolint-disable-line`, 앞 줄에 `kolint-disable-next-line` 주석을 두면 해당 줄을 제외합니다.
 
-### 커밋 메시지
+### 커밋 메시지와 PR
 
 제목은 명사형 요약, 본문은 빈 줄 뒤 변경 이유를 짧은 개조식으로 작성하는 형식이 기준입니다.
 
@@ -146,10 +146,21 @@ fix(auth): 토큰 갱신 실패 오류 수정
 | `commit-emoji` | error | 제목·본문의 이모지 |
 | `commit-trailer` | error | 설정으로 금지한 트레일러 |
 | `commit-file-list` | warn | 제목·본문 항목의 파일·함수 이름 나열 |
+| `pr-title` | error | 문장형으로 끝나는 PR 제목 |
+| `pr-signature` | error | PR 본문의 `🤖 Generated with` 등 AI 도구 서명 |
+| `pr-emoji` | error | PR 제목·본문의 이모지 |
 
-문서 규칙 중 `metaphor`, `filler`, `em-dash-aside`, `particle-spacing`은 커밋 메시지에도 적용됩니다. `git commit -v`가 붙이는 구분선 아래 디프는 검사하지 않습니다.
+문서 규칙 중 `metaphor`, `filler`, `em-dash-aside`, `particle-spacing`은 커밋 메시지에도 적용됩니다. `git commit -v`가 붙이는 구분선 아래 디프는 검사하지 않습니다. PR 본문에는 문서 규칙(제목, 표 칸, 비유, 부연, 긴 대시, 조사 띄어쓰기)도 적용하며, 개조식 본문이 많으므로 말투는 검사하지 않습니다.
 
-Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 추가합니다. `commit-signature` 규칙은 이 커밋을 거부하므로 Claude가 트레일러를 빼고 다시 커밋합니다. 트레일러를 유지하려면 설정의 `rules`에서 `commit-signature`를 `off`로 지정하십시오.
+Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를, PR 본문에 `🤖 Generated with Claude Code` 서명을 추가합니다. `commit-signature`·`pr-signature` 규칙은 이 커밋과 PR을 거부하므로 Claude가 서명을 빼고 다시 실행합니다. 서명을 처음부터 추가하지 않게 하려면 Claude Code 설정(`~/.claude/settings.json`)에 다음 항목을 추가하십시오. 빈 문자열은 서명을 숨긴다는 의미입니다.
+
+```json
+{
+  "attribution": { "commit": "", "pr": "" }
+}
+```
+
+서명을 유지하려면 `.devdog.json`의 `rules`에서 `commit-signature`와 `pr-signature`를 `off`로 지정하십시오.
 
 ## 5. 문제 정의
 
@@ -197,7 +208,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 |---|---|---|
 | 작성 단계의 규칙 적용 | 작성 스킬 | 요소별 말투와 명사형 제목·표 칸 적용 |
 | 작성 직후 위반 수정 | PostToolUse 훅, `kolint.py` | error 등급 위반을 같은 턴에서 수정 |
-| 커밋 메시지 검사 | PreToolUse 훅 | 문장형 제목·본문, AI 도구 서명, 이모지가 있는 커밋 거부 |
+| 커밋·PR 메시지 검사 | PreToolUse 훅 | 문장형 제목·본문, AI 도구 서명, 이모지가 있는 커밋·PR 생성 거부 |
 | 기존 저장소 정리 | 전환 스킬과 도구 | 주석 정리 시 코드 줄 변경 0건 |
 | 의미 보존 | 스킬의 최우선 원칙 | 요청에 포함된 숫자·명령·경로 누락 0건 |
 
@@ -269,7 +280,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 - 번역투 문장 구조, 불필요한 명사화, 문장 길이는 검사하지 않습니다.
 - 커밋 검사 훅은 `-m`, `--message`, `-F` 형식만 확인합니다. 편집기로 작성한 커밋 메시지는 [직접 검사](#직접-검사)의 `commit-msg` 훅으로 검사하십시오.
 - `commit-body-style`은 본문 항목의 끝 어미만 확인합니다. 명사형으로 끝나는 긴 서술 문장이나 변경 내용만 나열한 본문은 검출하지 않습니다.
-- PR 본문(`gh pr create --body`)은 검사하지 않습니다.
+- PR 검사는 `gh pr create`·`gh pr edit`의 `--title`, `--body`, `--body-file` 인자만 확인합니다. 웹 화면이나 다른 도구로 만든 PR은 검사하지 않습니다.
 
 ## 9. 기여
 

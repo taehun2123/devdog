@@ -1,5 +1,5 @@
 {
-  "description": "DevDog: 문서·주석 작성 후 문체 검사, git commit 전 커밋 제목 검사",
+  "description": "DevDog: 문서·주석 작성 후 문체 검사, git commit·gh pr 실행 전 메시지 검사",
   "hooks": {
     "PostToolUse": [
       {

@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 0.4.0 (2026-09-24)
+
+- PR 검사 추가: `gh pr create`·`gh pr edit` 실행 전 제목(`pr-title`), AI 도구 서명(`pr-signature`), 이모지(`pr-emoji`), 본문 Markdown 규칙 검사
+- README에 Claude Code `attribution` 설정으로 커밋·PR 서명을 끄는 방법 추가
+
 ## 0.3.0 (2026-09-24)
 
 - 커밋 본문 규칙 추가: 제목·본문 사이 빈 줄(`commit-body-separator`), 짧은 개조식 본문(`commit-body-style`)

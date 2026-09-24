@@ -184,6 +184,35 @@ class Commit(unittest.TestCase):
             self.assertEqual(kolint.commit_messages('git commit -F msg.txt', d), ['fix: 수정\n'])
 
 
+class PullRequest(unittest.TestCase):
+    def test_fields(self):
+        heredoc = ("gh pr create --base dev -t \"feat: 목록 캐시 추가\" --body \"$(cat <<'EOF'\n"
+                   "## Summary\n- 캐시 추가\nEOF\n)\"")
+        self.assertEqual(kolint.pr_fields(heredoc, '.'), ('feat: 목록 캐시 추가', '## Summary\n- 캐시 추가'))
+        self.assertEqual(kolint.pr_fields('gh pr edit 12 --title="fix: 오류 수정"', '.'), ('fix: 오류 수정', None))
+        self.assertIsNone(kolint.pr_fields('gh pr view 12', '.'))
+        with tempfile.TemporaryDirectory() as d:
+            write(os.path.join(d, 'body.md'), '- 원인 제거\n')
+            self.assertEqual(kolint.pr_fields('gh pr create -t "fix: 오류 수정" -F body.md', d),
+                             ('fix: 오류 수정', '- 원인 제거\n'))
+
+    def test_lint(self):
+        rules = lambda t, b: sorted({f.rule for f in kolint.lint_pr(t, b, cfg())})
+        self.assertEqual(rules('fix(auth): 토큰 갱신 실패 오류 수정', '## 변경 이유\n- 재발급 누락 원인 제거'), [])
+        self.assertEqual(rules('fix: 오류를 고쳤다', None), ['pr-title'])
+        self.assertEqual(rules('feat: 캐시 추가', '- 캐시 추가\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)'),
+                         ['pr-signature'])
+        self.assertEqual(rules('feat: 캐시 추가 ✨', '- 완료 ✅'), ['pr-emoji'])
+        self.assertIn('heading-sentence', rules('feat: 캐시 추가', '## 무엇을 바꿨는가\n- 캐시 추가'))
+
+    def test_hook(self):
+        deny = kolint.hook_pre({'tool_input': {'command': 'gh pr create -t "fix: 오류를 고쳤다" -b "- 원인 제거"'}})
+        self.assertEqual(deny['hookSpecificOutput']['permissionDecision'], 'deny')
+        self.assertIn('pr-title', deny['hookSpecificOutput']['permissionDecisionReason'])
+        self.assertEqual(kolint.hook_pre({'tool_input': {'command': 'gh pr create -t "fix: 오류 수정" -b "- 원인 제거"'}}), {})
+        self.assertEqual(kolint.hook_pre({'tool_input': {'command': 'gh pr list'}}), {})
+
+
 class Hooks(unittest.TestCase):
     def test_post_edit_scope(self):
         with tempfile.TemporaryDirectory() as d:

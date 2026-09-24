@@ -85,6 +85,9 @@ RULES = {
     'commit-file-list': ('warn', '커밋 메시지에 파일·함수 이름 나열. 변경 대상과 이유로 작성'),
     'commit-signature': ('error', 'AI 도구 서명·공동작업 표기. 삭제'),
     'commit-emoji': ('error', '커밋 메시지에 이모지 사용. 삭제'),
+    'pr-title': ('error', 'PR 제목이 문장형으로 끝남. 명사형 요약으로 수정'),
+    'pr-signature': ('error', 'PR 본문의 AI 도구 서명. 삭제'),
+    'pr-emoji': ('error', 'PR 제목·본문에 이모지 사용. 삭제'),
 }
 REGISTER_NAME = {'hapsyo': '~입니다·~하십시오', 'haera': '~이다·~한다'}
 
@@ -603,33 +606,108 @@ def commit_messages(cmd, cwd):
             elif re.fullmatch(r'-m.+', t):
                 value = t[2:]
             elif t in ('-F', '--file') and j + 1 < len(tokens):
-                target = tokens[j + 1]
+                value = read_arg_file(tokens[j + 1], cmd, cwd)
                 j += 1
-                if target == '-':
-                    m = HEREDOC.search(cmd)
-                    value = m.group(2) if m else None
-                else:
-                    p = os.path.join(cwd, target)
-                    if os.path.isfile(p):
-                        with open(p, encoding='utf-8') as f:
-                            value = f.read()
             if value is not None:
-                m = re.match(r"\$\(cat\s*" + HEREDOC.pattern + r"\s*\)$", value, re.S)
-                msgs.append(m.group(2) if m else value)
+                msgs.append(unwrap_heredoc(value))
             j += 1
     return msgs
 
 
+def unwrap_heredoc(value):
+    """"$(cat <<'EOF' ... EOF)" 형태의 인자에서 본문만 꺼낸다."""
+    m = re.match(r"\$\(cat\s*" + HEREDOC.pattern + r"\s*\)$", value, re.S)
+    return m.group(2) if m else value
+
+
+def read_arg_file(target, cmd, cwd):
+    """-F 인자의 파일 내용. '-'이면 명령의 heredoc 본문."""
+    if target == '-':
+        m = HEREDOC.search(cmd)
+        return m.group(2) if m else None
+    path = os.path.join(cwd, target)
+    if os.path.isfile(path):
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    return None
+
+
+def pr_fields(cmd, cwd):
+    """gh pr create·edit 명령의 (제목, 본문). 해당 명령이 아니면 None."""
+    try:
+        tokens = shlex.split(cmd, posix=True)
+    except ValueError:
+        return None
+    for idx in range(len(tokens) - 2):
+        if tokens[idx:idx + 2] != ['gh', 'pr'] or tokens[idx + 2] not in ('create', 'edit'):
+            continue
+        title = body = None
+        j = idx + 3
+        while j < len(tokens) and tokens[j] not in ('&&', '||', ';', '|'):
+            t = tokens[j]
+            nxt = tokens[j + 1] if j + 1 < len(tokens) else ''
+            if t in ('-t', '--title'):
+                title, j = unwrap_heredoc(nxt), j + 1
+            elif t.startswith('--title='):
+                title = unwrap_heredoc(t.split('=', 1)[1])
+            elif t in ('-b', '--body'):
+                body, j = unwrap_heredoc(nxt), j + 1
+            elif t.startswith('--body='):
+                body = unwrap_heredoc(t.split('=', 1)[1])
+            elif t in ('-F', '--body-file'):
+                body, j = read_arg_file(nxt, cmd, cwd), j + 1
+            elif t.startswith('--body-file='):
+                body = read_arg_file(t.split('=', 1)[1], cmd, cwd)
+            j += 1
+        return title, body
+    return None
+
+
+def lint_pr(title, body, cfg):
+    """PR 제목은 커밋 제목 규칙, 본문은 Markdown 규칙과 서명·이모지 금지를 적용한다."""
+    out = []
+
+    def add(rule, where, line_no, text):
+        sev = severity(cfg, rule)
+        if sev != 'off':
+            out.append(Finding(rule, where, line_no, text, sev))
+
+    if title:
+        subject = CONVENTIONAL.sub('', title.strip())
+        if cfg['commitSubject'] == 'noun' and HANGUL.search(subject) and \
+                (SENTENCE_END.search(subject) or subject.endswith(('.', '!'))):
+            add('pr-title', 'PR 제목', 1, title)
+        if EMOJI.search(title):
+            add('pr-emoji', 'PR 제목', 1, title)
+    if body:
+        for n, line in enumerate(body.split('\n'), 1):
+            if AI_SIGNATURE.search(line):
+                add('pr-signature', 'PR 본문', n, line)
+            elif EMOJI.search(line):
+                add('pr-emoji', 'PR 본문', n, line)
+        # PR 본문은 개조식이 많으므로 말투 검사는 하지 않는다
+        out += lint_markdown(body, 'PR 본문', dict(cfg, docRegister='any'))
+    return out
+
+
 def hook_pre(data):
     cmd = (data.get('tool_input') or {}).get('command', '')
-    if not re.search(r'\bgit\b.*\bcommit\b', cmd, re.S):
+    is_commit = re.search(r'\bgit\b.*\bcommit\b', cmd, re.S)
+    is_pr = re.search(r'\bgh\s+pr\s+(?:create|edit)\b', cmd)
+    if not (is_commit or is_pr):
         return {}
     cwd = data.get('cwd') or os.getcwd()
-    msgs = commit_messages(cmd, cwd)
-    if not msgs:
-        return {}
     cfg = load_config(cwd)
-    findings = [f for f in lint_commit('\n\n'.join(msgs), cfg) if f.sev == 'error']
+    findings = []
+    if is_commit:
+        msgs = commit_messages(cmd, cwd)
+        if msgs:
+            findings += lint_commit('\n\n'.join(msgs), cfg)
+    if is_pr:
+        fields = pr_fields(cmd, cwd)
+        if fields:
+            findings += lint_pr(fields[0], fields[1], cfg)
+    findings = [f for f in findings if f.sev == 'error']
     if not findings:
         return {}
     return {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny',
