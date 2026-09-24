@@ -1,0 +1,108 @@
+<!doctype html>
+<!--
+README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 다시 생성한다.
+  CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  for t in light dark; do "$CHROME" --headless=new --hide-scrollbars --force-device-scale-factor=2 \
+    --window-size=1200,880 --screenshot=docs/assets/before-after-$t.png \
+    "file://$PWD/docs/assets/before-after.html?theme=$t"; done
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>ko-tech-writing 적용 전후</title>
+<style>
+  :root {
+    --page: #ffffff; --card: #ffffff; --line: #d0d7de; --text: #1f2328; --muted: #59636e;
+    --bad-bg: #ffebe9; --bad-mark: #ffcecb; --bad-text: #82071e; --bad-edge: #cf222e;
+    --good-bg: #dafbe1; --good-mark: #aceebb; --good-text: #0a3622; --good-edge: #1a7f37;
+    --chip: #f6f8fa;
+  }
+  .dark {
+    --page: #0d1117; --card: #161b22; --line: #30363d; --text: #e6edf3; --muted: #9198a1;
+    --bad-bg: #2d1115; --bad-mark: #6e1b24; --bad-text: #ffdcd7; --bad-edge: #f85149;
+    --good-bg: #0f2a1a; --good-mark: #1b5e33; --good-text: #d2f8dc; --good-edge: #3fb950;
+    --chip: #21262d;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--page); color: var(--text); padding: 28px;
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 21px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 30px 32px 24px; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
+  .brand { font: 600 16px "SF Mono", Menlo, monospace; color: var(--muted); letter-spacing: .02em; }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -.01em; margin-top: 4px; }
+  .score { font-size: 20px; font-weight: 700; white-space: nowrap; }
+  .score .bad { color: var(--bad-edge); } .score .good { color: var(--good-edge); }
+  .grid { display: grid; grid-template-columns: 118px 1fr 1fr; gap: 12px 14px; align-items: stretch; }
+  .col { font-size: 17px; font-weight: 800; letter-spacing: .04em; padding: 0 4px; }
+  .col.bad { color: var(--bad-edge); } .col.good { color: var(--good-edge); }
+  .label { font-size: 17px; font-weight: 700; color: var(--muted); padding-top: 14px; }
+  .cell { border-radius: 10px; padding: 12px 16px; border-left: 5px solid; }
+  .cell.bad { background: var(--bad-bg); border-color: var(--bad-edge); }
+  .cell.good { background: var(--good-bg); border-color: var(--good-edge); }
+  .mono { font-family: "SF Mono", Menlo, monospace; font-size: 19px; color: var(--muted); }
+  mark { border-radius: 5px; padding: 1px 4px; font-weight: 700; }
+  .bad mark { background: var(--bad-mark); color: var(--bad-text); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .good mark { background: var(--good-mark); color: var(--good-text); }
+  .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font: 600 13px "SF Mono", Menlo, monospace; background: var(--chip); color: var(--bad-edge);
+         border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+  .ok { color: var(--good-edge); }
+  table { border-collapse: collapse; }
+  td { padding: 2px 12px 2px 0; vertical-align: top; }
+  td:first-child { color: var(--muted); font-weight: 700; white-space: nowrap; }
+  footer { margin-top: 20px; font-size: 14px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<script>if (location.search.includes('theme=dark')) document.documentElement.className = 'dark';</script>
+<div class="card">
+  <header>
+    <div>
+      <div class="brand">ko-tech-writing</div>
+      <h1>공학 문서체 적용 전후</h1>
+    </div>
+    <div class="score">kolint 검출 <span class="bad">15건</span> → <span class="good">0건</span></div>
+  </header>
+
+  <div class="grid">
+    <div></div><div class="col bad">수정 전</div><div class="col good">수정 후</div>
+
+    <div class="label">제목</div>
+    <div class="cell bad"><span class="mono">##</span> 서버가 <mark>넘어졌을 때</mark> 무슨 일이 <mark>일어나는가</mark>
+      <div class="tags"><span class="tag">heading-sentence</span><span class="tag">metaphor</span></div></div>
+    <div class="cell good"><span class="mono">##</span> 서버 <mark>장애 시 동작</mark></div>
+
+    <div class="label">본문</div>
+    <div class="cell bad">서버가 <mark>답을 안 주면</mark> 앱은 값을 <mark>들고 있다가</mark> 15초 뒤에 <mark>포기한다</mark> <mark>—</mark> 그동안 화면은 스켈레톤만 <mark>띄운다</mark>. 재시도는 3번까지 <mark>돈다</mark>. <mark>이게 전부다.</mark>
+      <div class="tags"><span class="tag">register-mix</span><span class="tag">metaphor</span><span class="tag">em-dash-aside</span><span class="tag">filler</span></div></div>
+    <div class="cell good">서버가 <mark>응답하지 않으면</mark> 앱은 값을 <mark>보관한</mark> 채 대기하다가 15초 후 요청을 <mark>중단합니다</mark>. 대기하는 동안 화면에는 스켈레톤만 <mark>표시됩니다</mark>. 재시도는 최대 3회 <mark>수행됩니다</mark>.</div>
+
+    <div class="label">표 칸</div>
+    <div class="cell bad"><table>
+      <tr><td>대기</td><td>아직 <mark>답이 없다</mark></td></tr>
+      <tr><td>실패</td><td>한 번 실패했지만 <mark>포기하지 않았다</mark></td></tr></table>
+      <div class="tags"><span class="tag">table-cell-sentence</span><span class="tag">metaphor</span></div></div>
+    <div class="cell good"><table>
+      <tr><td>대기</td><td>아직 <mark>응답을 받지 못함</mark></td></tr>
+      <tr><td>실패</td><td>1회 실패했으나 <mark>재시도를 중단하지 않음</mark></td></tr></table></div>
+
+    <div class="label">커밋 제목</div>
+    <div class="cell bad"><span class="mono">docs:</span> 캐시 문서를 <mark>추가했다</mark>
+      <div class="tags"><span class="tag">commit-subject</span><span class="tag">커밋 훅이 실행 거부</span></div></div>
+    <div class="cell good"><span class="mono">docs:</span> 캐시 문서 <mark>추가</mark></div>
+
+    <div class="label">코드 주석</div>
+    <div class="cell bad"><span class="mono">//</span> 여기서 <mark>죽으면</mark> 앱이 안 <mark>뜬다</mark>.
+      <div class="tags"><span class="tag">metaphor</span></div></div>
+    <div class="cell good"><span class="mono">//</span> 여기서 <mark>예외가 발생하면</mark> 앱이 <mark>기동하지 않는다</mark>.</div>
+  </div>
+
+  <footer>
+    본문·표 칸: 비교 실험 rewrite 케이스의 실제 출력 (Sonnet, 플러그인 적용) · 커밋 제목: 커밋 훅이 거부한 뒤 Claude가 다시 작성한 결과 · 코드 주석: 실제 저장소 정리 사례
+  </footer>
+</div>
+</body>
+</html>
