@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 안경과 헤드폰을 착용하고 노트북으로 작업하는 강아지">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/mascot-dark.png">
+    <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 코드 기호와 설계·구조·검증 같은 단어로 채워진, 안경과 헤드폰을 착용하고 노트북 앞에 앉은 강아지">
+  </picture>
 </p>
 
 <h1 align="center">DevDog</h1>
