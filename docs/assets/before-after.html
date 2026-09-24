@@ -32,6 +32,8 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 30px 32px 24px; }
   header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
   .brand { font: 600 16px "SF Mono", Menlo, monospace; color: var(--muted); letter-spacing: .02em; }
+  .title { display: flex; align-items: center; gap: 16px; }
+  .title img { width: 84px; height: 84px; }
   h1 { font-size: 34px; font-weight: 800; letter-spacing: -.01em; margin-top: 4px; }
   .score { font-size: 20px; font-weight: 700; white-space: nowrap; }
   .score .bad { color: var(--bad-edge); } .score .good { color: var(--good-edge); }
@@ -60,9 +62,12 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
 <script>if (location.search.includes('theme=dark')) document.documentElement.className = 'dark';</script>
 <div class="card">
   <header>
-    <div>
-      <div class="brand">DevDog</div>
-      <h1>공학 문서체 적용 전후</h1>
+    <div class="title">
+      <img src="mascot.png" alt="">
+      <div>
+        <div class="brand">DevDog</div>
+        <h1>공학 문서체 적용 전후</h1>
+      </div>
     </div>
     <div class="score">kolint 검출 <span class="bad">15건</span> → <span class="good">0건</span></div>
   </header>

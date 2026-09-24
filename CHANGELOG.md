@@ -8,6 +8,7 @@
 - 설정 파일 이름 변경: `.ko-tech-writing.json` → `.devdog.json`
 - 저장소 주소 변경: `taehun2123/ko-tech-writing` → `taehun2123/devdog`
 - 설치 명령 변경: `claude plugin marketplace add taehun2123/devdog`, `claude plugin install devdog@devdog`
+- 마스코트 이미지 추가: README 상단과 적용 전후 비교 이미지에 표시
 
 ## 0.1.0 (2026-09-24)
 

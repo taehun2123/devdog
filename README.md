@@ -1,6 +1,10 @@
-# DevDog
+<p align="center">
+  <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 안경과 헤드폰을 착용하고 노트북으로 코드를 작성하는 강아지">
+</p>
 
-개발팀 한국어 공학 문서체 플러그인입니다. 플러그인 식별자는 `devdog`입니다.
+<h1 align="center">DevDog</h1>
+
+<p align="center">개발팀 한국어 공학 문서체 Claude Code 플러그인 · 식별자 <code>devdog</code></p>
 
 ## 목차
 
