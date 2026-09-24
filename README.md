@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 안경과 헤드폰을 착용하고 노트북으로 코드를 작성하는 강아지">
+  <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 안경과 헤드폰을 착용하고 노트북으로 작업하는 강아지">
 </p>
 
 <h1 align="center">DevDog</h1>
