@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/mascot.png" width="220" alt="DevDog 마스코트. 안경을 쓰고 청록색 후드티를 입은 채 노트북으로 작업하는 강아지">
+  <img src="docs/assets/devdog.png" width="220" alt="DevDog 마스코트. 안경을 쓰고 청록색 후드티를 입은 채 노트북으로 작업하는 강아지">
 </p>
 
 <h1 align="center">DevDog</h1>
@@ -24,8 +24,8 @@
 개발팀의 한국어 기술 문서, 커밋 메시지, 코드 주석을 공학 문서체로 작성·검사하는 Claude Code 플러그인입니다. 작성 규칙(스킬), 결정적 검사기(`kolint.py`), 자동 검사 훅, 기존 저장소 일괄 전환 도구로 구성됩니다.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/before-after-dark.png">
-  <img src="docs/assets/before-after-light.png" width="100%" alt="공학 문서체 적용 전후 비교. 제목, 본문, 표 칸, 커밋 메시지, 코드 주석 5개 요소의 수정 전 문장과 수정 후 문장을 나란히 표시하며, kolint 검출 건수는 17건에서 0건으로 감소">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/compare-dark.png">
+  <img src="docs/assets/compare-light.png" width="100%" alt="공학 문서체 적용 전후 비교. 제목, 본문, 표 칸, 커밋 메시지, 코드 주석 5개 요소의 수정 전 문장과 수정 후 문장을 나란히 표시하며, kolint 검출 건수는 17건에서 0건으로 감소">
 </picture>
 
 ```diff

@@ -3,7 +3,7 @@
 README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 다시 생성한다.
   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   for t in light dark; do "$CHROME" --headless=new --hide-scrollbars --force-device-scale-factor=2 \
-    --window-size=1200,980 --screenshot=docs/assets/before-after-$t.png \
+    --window-size=1200,980 --screenshot=docs/assets/compare-$t.png \
     "file://$PWD/docs/assets/before-after.html?theme=$t"; done
 -->
 <html lang="ko">
@@ -63,7 +63,7 @@ README 상단 대비 이미지의 원본. 수정 후 다음 명령으로 PNG를 
 <div class="card">
   <header>
     <div class="title">
-      <img src="mascot.png" alt="">
+      <img src="devdog.png" alt="">
       <div>
         <div class="brand">DevDog</div>
         <h1>공학 문서체 적용 전후</h1>
