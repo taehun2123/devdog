@@ -1,5 +1,7 @@
 # ko-tech-writing
 
+## 1. 요약
+
 개발팀의 한국어 기술 문서, 커밋 메시지, 코드 주석을 공학 문서체로 작성·검사하는 Claude Code 플러그인입니다. 작성 규칙(스킬), 결정적 검사기(`kolint.py`), 자동 검사 훅, 기존 저장소 일괄 전환 도구로 구성됩니다.
 
 <picture>
@@ -28,7 +30,66 @@
 
 본문·표 칸의 수정 후 문장은 [비교 실험](evals/README.md) rewrite 케이스에서 플러그인을 적용한 실제 출력입니다. 커밋 제목은 커밋 훅이 거부한 뒤 Claude가 다시 작성한 결과입니다. 이미지 원본은 [docs/assets/before-after.html](docs/assets/before-after.html)입니다.
 
-## 문제 정의
+### 구성 요소
+
+| 구성 요소 | 경로 | 동작 |
+|---|---|---|
+| 작성 스킬 | `skills/ko-tech-writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
+| 전환 스킬 | `skills/ko-tech-migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
+| 검사기 | `scripts/kolint.py` | 규칙 9종 검사, CLI·훅 겸용 |
+| 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
+| 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit -m` 제목 검사, 위반 시 실행 거부 |
+| 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
+| 출력 스타일 | `output-styles/ko-tech.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
+
+규칙을 모든 답변에 상시 주입하지 않습니다. 상시 주입하면 답변에서 정보가 누락되는 사례가 보고되어([korean-kit](https://github.com/IsthisLee/korean-kit)) 스킬과 파일 검사 훅으로 범위를 제한했습니다.
+
+## 2. 설치
+
+```bash
+claude plugin marketplace add taehun2123/ko-tech-writing
+claude plugin install ko-tech-writing@ko-tech-writing
+```
+
+`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. macOS에서 확인했으며 Windows는 확인하지 않았습니다.
+
+## 3. 사용 방법
+
+### 자동 적용
+
+설치 후 한국어 문서·주석·커밋을 요청하면 작성 스킬이 적용됩니다. Claude가 파일을 쓰면 훅이 변경된 줄을 검사하고, error 등급 위반이 있으면 같은 턴에서 수정하도록 전달합니다.
+
+### 직접 검사
+
+```bash
+python3 scripts/kolint.py docs/ src/                 # 문서와 코드 주석
+python3 scripts/kolint.py --json docs/ > report.json  # JSON 출력
+python3 scripts/kolint.py --commit-msg .git/COMMIT_EDITMSG
+```
+
+error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `commit-msg` 훅에 연결할 수 있습니다.
+
+### 기존 저장소 전환
+
+"저장소 전체 문서 문체를 정리해 줘"처럼 요청하면 `ko-tech-migrate` 스킬의 절차(측정 → 변환 → 디프 검토 → 컴파일 검사 → 범위별 커밋)로 진행합니다.
+
+## 4. 검사 규칙
+
+| 규칙 | 등급 | 검출 대상 |
+|---|---|---|
+| `heading-sentence` | error | 문장·의문문·"~때"·조사로 끝나는 제목 |
+| `table-cell-sentence` | error | "~다"로 끝나는 한 문장 표 칸 |
+| `register-mix` | error | 설정한 말투와 다른 종결어미 |
+| `filler` | error | "이게 전부입니다", "~하는 셈입니다" 등 부연 문장 |
+| `commit-subject` | error | 문장형으로 끝나는 커밋 제목 |
+| `commit-trailer` | error | 설정으로 금지한 커밋 트레일러 |
+| `metaphor` | warn | 비유·의인화·대화체 어휘 약 50종 |
+| `em-dash-aside` | warn | 긴 대시 부가 설명 |
+| `particle-spacing` | warn | 영문·코드·숫자 뒤 조사 띄어쓰기 |
+
+코드 블록, 인라인 코드, 따옴표, URL, 인용 블록의 말투, 예시 문장 열("수정 전", "표현" 등)은 검사하지 않습니다. 줄 끝에 `kolint-disable-line`, 앞 줄에 `kolint-disable-next-line` 주석을 두면 해당 줄을 제외합니다.
+
+## 5. 문제 정의
 
 ### 현상
 
@@ -77,7 +138,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 
 범위 밖 항목은 맞춤법 전체 검사, 번역투 문장 구조 자동 판정, 일반 채팅 답변, 소설·마케팅 문구입니다.
 
-## 다른 한국어 플러그인과의 차이
+## 6. 차별점
 
 범용 "자연스러운 한국어", "AI 티 제거" 플러그인은 이미 여럿 있습니다([fluent-korean](https://github.com/snflkd/fluent-korean), [k-skill](https://github.com/NomaDamas/k-skill), [korean-skills](https://github.com/DaleSeo/korean-skills) 등). 이 플러그인의 대상은 개발 조직의 공학 문서입니다.
 
@@ -91,66 +152,23 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 | 검사 방식 | 프롬프트 지침 | 정규식 검사기 + 훅 + 테스트 fixture |
 | 기존 저장소 | 텍스트 단위 윤문 | 일괄 전환 절차와 코드 무변경 검증 |
 
-## 구성 요소
+### 측정 결과
 
-| 구성 요소 | 경로 | 동작 |
-|---|---|---|
-| 작성 스킬 | `skills/ko-tech-writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
-| 전환 스킬 | `skills/ko-tech-migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
-| 검사기 | `scripts/kolint.py` | 규칙 9종 검사, CLI·훅 겸용 |
-| 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
-| 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit -m` 제목 검사, 위반 시 실행 거부 |
-| 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
-| 출력 스타일 | `output-styles/ko-tech.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
+실제 서비스 저장소 5곳(문서 3곳, 코드 2곳)의 문체 정리 디프에서 수정 전후 줄 8,022쌍을 추출해 측정했습니다.
 
-규칙을 모든 답변에 상시 주입하지 않습니다. 상시 주입하면 답변에서 정보가 누락되는 사례가 보고되어([korean-kit](https://github.com/IsthisLee/korean-kit)) 스킬과 파일 검사 훅으로 범위를 제한했습니다.
+| 지표 | 값 |
+|---|---|
+| 수정 전 줄 검출률 (전체 규칙) | 48.4% |
+| 수정 후 줄 오탐률 (전체 규칙) | 0.54% |
+| 수정 후 줄 오탐률 (error 등급) | 0.01% (1건, 실제 남은 위반) |
+| 익명화 fixture 168쌍 검출률 | 98.8% |
+| 익명화 fixture 오탐 | 0건 |
 
-## 설치
+수정 전 줄 검출률이 50% 미만인 이유는 번역투 재구성처럼 정규식으로 판별할 수 없는 수정이 포함되기 때문입니다. 이 영역은 작성 스킬이 담당합니다. 검사기는 오탐을 줄이는 방향으로 조정했습니다.
 
-```bash
-claude plugin marketplace add taehun2123/ko-tech-writing
-claude plugin install ko-tech-writing@ko-tech-writing
-```
+플러그인 있음·없음 비교 결과는 [evals/README.md](evals/README.md)에 있습니다. 같은 요청에서 kolint error 위반은 플러그인 없음 5건, 있음 0건이었습니다. 요청에 포함된 숫자·명령 누락은 두 조건 모두 0건입니다.
 
-`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. macOS에서 확인했으며 Windows는 확인하지 않았습니다.
-
-## 사용 방법
-
-### 자동 적용
-
-설치 후 한국어 문서·주석·커밋을 요청하면 작성 스킬이 적용됩니다. Claude가 파일을 쓰면 훅이 변경된 줄을 검사하고, error 등급 위반이 있으면 같은 턴에서 수정하도록 전달합니다.
-
-### 직접 검사
-
-```bash
-python3 scripts/kolint.py docs/ src/                 # 문서와 코드 주석
-python3 scripts/kolint.py --json docs/ > report.json  # JSON 출력
-python3 scripts/kolint.py --commit-msg .git/COMMIT_EDITMSG
-```
-
-error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `commit-msg` 훅에 연결할 수 있습니다.
-
-### 기존 저장소 전환
-
-"저장소 전체 문서 문체를 정리해 줘"처럼 요청하면 `ko-tech-migrate` 스킬의 절차(측정 → 변환 → 디프 검토 → 컴파일 검사 → 범위별 커밋)로 진행합니다.
-
-## 검사 규칙
-
-| 규칙 | 등급 | 검출 대상 |
-|---|---|---|
-| `heading-sentence` | error | 문장·의문문·"~때"·조사로 끝나는 제목 |
-| `table-cell-sentence` | error | "~다"로 끝나는 한 문장 표 칸 |
-| `register-mix` | error | 설정한 말투와 다른 종결어미 |
-| `filler` | error | "이게 전부입니다", "~하는 셈입니다" 등 부연 문장 |
-| `commit-subject` | error | 문장형으로 끝나는 커밋 제목 |
-| `commit-trailer` | error | 설정으로 금지한 커밋 트레일러 |
-| `metaphor` | warn | 비유·의인화·대화체 어휘 약 50종 |
-| `em-dash-aside` | warn | 긴 대시 부가 설명 |
-| `particle-spacing` | warn | 영문·코드·숫자 뒤 조사 띄어쓰기 |
-
-코드 블록, 인라인 코드, 따옴표, URL, 인용 블록의 말투, 예시 문장 열("수정 전", "표현" 등)은 검사하지 않습니다. 줄 끝에 `kolint-disable-line`, 앞 줄에 `kolint-disable-next-line` 주석을 두면 해당 줄을 제외합니다.
-
-## 설정
+## 7. 설정
 
 저장소 루트의 `.ko-tech-writing.json`으로 기본값을 바꿉니다. 검사 대상 파일에서 상위 폴더 방향으로 가장 가까운 파일을 사용합니다.
 
@@ -176,36 +194,42 @@ error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `c
 | `allow` | `[]` | 검사하지 않을 어구 |
 | `rules` | 규칙별 기본 등급 | `error`, `warn`, `off` |
 
-## 측정 결과
-
-실제 서비스 저장소 5곳(문서 3곳, 코드 2곳)의 문체 정리 디프에서 수정 전후 줄 8,022쌍을 추출해 측정했습니다.
-
-| 지표 | 값 |
-|---|---|
-| 수정 전 줄 검출률 (전체 규칙) | 48.4% |
-| 수정 후 줄 오탐률 (전체 규칙) | 0.54% |
-| 수정 후 줄 오탐률 (error 등급) | 0.01% (1건, 실제 남은 위반) |
-| 익명화 fixture 168쌍 검출률 | 98.8% |
-| 익명화 fixture 오탐 | 0건 |
-
-수정 전 줄 검출률이 50% 미만인 이유는 번역투 재구성처럼 정규식으로 판별할 수 없는 수정이 포함되기 때문입니다. 이 영역은 작성 스킬이 담당합니다. 검사기는 오탐을 줄이는 방향으로 조정했습니다.
-
-플러그인 있음·없음 비교 결과는 [evals/README.md](evals/README.md)에 있습니다.
-
-## 한계
+## 8. 한계
 
 - 형태소 분석 없이 정규식으로 검사합니다. 동음이의어(예: 실제 그림을 "그린다")는 warn 등급으로 보고되며, 문맥 판단은 Claude나 사람이 합니다.
 - 번역투 문장 구조, 불필요한 명사화, 문장 길이는 검사하지 않습니다.
 - 커밋 검사 훅은 `-m`, `--message`, `-F` 형식만 확인합니다. 편집기로 작성한 커밋 메시지는 `--commit-msg` 옵션을 git 훅에 연결하십시오.
 
-## 개발
+## 9. 기여
+
+이슈와 PR로 기여할 수 있습니다.
+
+### 오탐·미검출 보고
+
+이슈에 다음 3가지를 포함하십시오.
+
+- 검사한 문장과 파일 종류(Markdown, 코드 주석, 커밋 메시지)
+- 보고된 규칙 ID 또는 검출되지 않은 규칙
+- 기대한 결과
+
+### 규칙·어휘 추가
+
+1. `scripts/kolint.py`의 `LEXICON`이나 해당 규칙을 수정하십시오.
+2. 새 어휘는 `skills/ko-tech-writing/references/glossary.md`에 권장 용어와 예시를 함께 추가하십시오.
+3. `tests/test_kolint.py`에 수정 전 문장(검출 대상)과 수정 후 문장(통과 대상)을 추가하십시오.
+4. 테스트 fixture에는 공개 가능한 문장만 사용하십시오. 서비스명, 내부 주소, 개인 정보는 제외 대상입니다.
+
+### PR 전 확인
 
 ```bash
-python3 -m unittest discover -s tests   # 단위 테스트와 fixture 검사
-python3 evals/ablation.py --runs 2       # 플러그인 있음·없음 비교 (Claude 사용량 발생)
-claude plugin validate .claude-plugin/plugin.json
+python3 -m unittest discover -s tests                 # 단위 테스트와 fixture 검사
+python3 scripts/kolint.py .                            # 이 저장소 문서도 같은 규칙을 적용
+claude plugin validate .claude-plugin/plugin.json      # 매니페스트 검증
+python3 evals/ablation.py --runs 2                     # 선택. 플러그인 있음·없음 비교 (Claude 사용량 발생)
 ```
 
-## 라이선스
+커밋 제목은 `type(scope): 명사형 요약` 형식입니다. 예: `feat(lint): 조사 띄어쓰기 규칙 추가`.
 
-MIT
+## 10. 라이선스
+
+MIT 라이선스입니다. 전문은 [LICENSE](LICENSE)에 있습니다.
