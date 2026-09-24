@@ -1,0 +1,51 @@
+[
+  {
+    "id": "runbook",
+    "kind": "doc",
+    "file": "docs/runbook-redis.md",
+    "prompt": "다음 사실로 Redis 연결 장애 대응 런북을 docs/runbook-redis.md 파일에 한국어로 작성하세요. 증상별 조치 표를 포함하세요.\n사실:\n1. API 서버는 Lettuce 클라이언트를 사용하며 명령 타임아웃 기본값은 60초입니다.\n2. 준비 상태 확인 주소는 GET /actuator/health/readiness이며 Redis 장애 시 503을 반환합니다.\n3. 재시작 명령은 `docker compose restart api`입니다.\n4. 캐시 키 접두사는 `geo:`이고 TTL은 24시간입니다.\n5. Redis 장애 중에는 좌표-지역 변환이 요청마다 외부 API를 호출해 응답이 약 2초 느려집니다.",
+    "facts": [
+      "60",
+      "readiness",
+      "503",
+      "docker compose restart api",
+      "geo:",
+      "24",
+      "2초"
+    ]
+  },
+  {
+    "id": "commit",
+    "kind": "commit",
+    "file": "commit-msg.txt",
+    "prompt": "다음 변경의 git 커밋 메시지를 commit-msg.txt 파일에 작성하세요. 형식은 Conventional Commits이며 제목 1줄, 빈 줄, 한국어 본문입니다. git 명령은 실행하지 마세요.\n변경: 모집글 목록 API에서 작성자 요약을 글마다 개별 조회하던 코드를 일괄 조회로 바꿨습니다. 한 페이지 20건 기준 쿼리 수가 약 200회에서 6회로 줄었습니다. 수정 파일은 RecruitmentServiceImpl.java와 UserSummaryMapper.java입니다.",
+    "facts": [
+      "200",
+      "6",
+      "20"
+    ]
+  },
+  {
+    "id": "comment",
+    "kind": "code",
+    "file": "src/QueueLock.java",
+    "prompt": "src/QueueLock.java 파일을 만들고 아래 클래스의 tryLock 메서드에 한국어 Javadoc 주석을 작성하세요. 주석에는 다음 내용을 모두 포함하세요: 잠금을 얻지 못하면 기다리지 않고 false를 반환함, 이 메서드는 사용자 요청 스레드에서 실행되므로 기다리면 큐 등록 응답이 그만큼 늦어짐, 다음 주기 배치(30초 간격)가 다시 시도함, 반드시 트랜잭션 안에서 호출해야 하며 트랜잭션이 없으면 잠금이 즉시 해제됨.\n```java\npublic class QueueLock {\n    public boolean tryLock(String regionKey) { return false; }\n}\n```",
+    "facts": [
+      "false",
+      "30초",
+      "트랜잭션",
+      "스레드"
+    ]
+  },
+  {
+    "id": "rewrite",
+    "kind": "doc",
+    "file": "docs/rewrite.md",
+    "prompt": "다음 Markdown을 공학 문서체로 고쳐 docs/rewrite.md 파일에 저장하세요. 사실과 숫자는 바꾸지 마세요.\n\n## 서버가 넘어졌을 때 무슨 일이 일어나는가\n\n서버가 답을 안 주면 앱은 값을 들고 있다가 15초 뒤에 포기한다 — 그동안 화면은 스켈레톤만 띄운다. 재시도는 3번까지 돈다. 이게 전부다.\n\n| 상태 | 설명 |\n|---|---|\n| 대기 | 아직 답이 없다 |\n| 실패 | 한 번 실패했지만 포기하지 않았다 |",
+    "facts": [
+      "15초",
+      "3(회|번)",
+      "스켈레톤"
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+notes/
+__pycache__/
+*.pyc
+evals/results/
