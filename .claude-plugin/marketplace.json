@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "ko-tech-writing",
-  "description": "개발팀 한국어 공학 문서체 플러그인",
+  "name": "devdog",
+  "description": "DevDog: 개발팀 한국어 공학 문서체 플러그인",
   "owner": {
     "name": "taehun2123",
     "url": "https://github.com/taehun2123"
   },
   "plugins": [
     {
-      "name": "ko-tech-writing",
+      "name": "devdog",
       "description": "문서·커밋·코드 주석의 한국어 공학 문서체 규칙, 결정적 검사기, 일괄 전환 도구",
       "source": "./",
       "category": "productivity"

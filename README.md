@@ -1,4 +1,6 @@
-# ko-tech-writing
+# DevDog
+
+개발팀 한국어 공학 문서체 플러그인입니다. 플러그인 식별자는 `devdog`입니다.
 
 ## 목차
 
@@ -47,21 +49,21 @@
 
 | 구성 요소 | 경로 | 동작 |
 |---|---|---|
-| 작성 스킬 | `skills/ko-tech-writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
-| 전환 스킬 | `skills/ko-tech-migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
+| 작성 스킬 `devdog:writing` | `skills/writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
+| 전환 스킬 `devdog:migrate` | `skills/migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
 | 검사기 | `scripts/kolint.py` | 규칙 9종 검사, CLI·훅 겸용 |
 | 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
 | 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit -m` 제목 검사, 위반 시 실행 거부 |
 | 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
-| 출력 스타일 | `output-styles/ko-tech.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
+| 출력 스타일 `devdog` | `output-styles/devdog.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
 
 규칙을 모든 답변에 상시 주입하지 않습니다. 상시 주입하면 답변에서 정보가 누락되는 사례가 보고되어([korean-kit](https://github.com/IsthisLee/korean-kit)) 스킬과 파일 검사 훅으로 범위를 제한했습니다.
 
 ## 2. 설치
 
 ```bash
-claude plugin marketplace add taehun2123/ko-tech-writing
-claude plugin install ko-tech-writing@ko-tech-writing
+claude plugin marketplace add taehun2123/devdog
+claude plugin install devdog@devdog
 ```
 
 `python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. macOS에서 확인했으며 Windows는 확인하지 않았습니다.
@@ -84,7 +86,7 @@ error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `c
 
 ### 기존 저장소 전환
 
-"저장소 전체 문서 문체를 정리해 줘"처럼 요청하면 `ko-tech-migrate` 스킬의 절차(측정 → 변환 → 디프 검토 → 컴파일 검사 → 범위별 커밋)로 진행합니다.
+"저장소 전체 문서 문체를 정리해 줘"처럼 요청하면 `devdog:migrate` 스킬의 절차(측정 → 변환 → 디프 검토 → 컴파일 검사 → 범위별 커밋)로 진행합니다.
 
 ## 4. 검사 규칙
 
@@ -155,7 +157,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 
 범용 "자연스러운 한국어", "AI 티 제거" 플러그인은 이미 여럿 있습니다([fluent-korean](https://github.com/snflkd/fluent-korean), [k-skill](https://github.com/NomaDamas/k-skill), [korean-skills](https://github.com/DaleSeo/korean-skills) 등). 이 플러그인의 대상은 개발 조직의 공학 문서입니다.
 
-| 항목 | 범용 한국어 플러그인 | ko-tech-writing |
+| 항목 | 범용 한국어 플러그인 | DevDog |
 |---|---|---|
 | 목표 | 사람다운 글 | 사실·조건·절차를 한 번에 찾는 글 |
 | 적용 대상 | 채팅 답변, Markdown | Markdown, 커밋 메시지, 코드 주석 |
@@ -183,7 +185,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 
 ## 7. 설정
 
-저장소 루트의 `.ko-tech-writing.json`으로 기본값을 바꿉니다. 검사 대상 파일에서 상위 폴더 방향으로 가장 가까운 파일을 사용합니다.
+저장소 루트의 `.devdog.json`으로 기본값을 바꿉니다. 검사 대상 파일에서 상위 폴더 방향으로 가장 가까운 파일을 사용합니다.
 
 ```json
 {
@@ -228,7 +230,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 ### 규칙·어휘 추가
 
 1. `scripts/kolint.py`의 `LEXICON`이나 해당 규칙을 수정하십시오.
-2. 새 어휘는 `skills/ko-tech-writing/references/glossary.md`에 권장 용어와 예시를 함께 추가하십시오.
+2. 새 어휘는 `skills/writing/references/glossary.md`에 권장 용어와 예시를 함께 추가하십시오.
 3. `tests/test_kolint.py`에 수정 전 문장(검출 대상)과 수정 후 문장(통과 대상)을 추가하십시오.
 4. 테스트 fixture에는 공개 가능한 문장만 사용하십시오. 서비스명, 내부 주소, 개인 정보는 제외 대상입니다.
 

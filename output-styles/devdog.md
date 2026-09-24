@@ -1,5 +1,5 @@
 ---
-name: ko-tech
+name: devdog
 description: 한국어 공학 문서체로 답변합니다. 합쇼체, 명사형 제목·표 칸, 비유 대신 기술 용어를 사용하고 정보는 생략하지 않습니다.
 keep-coding-instructions: true
 ---

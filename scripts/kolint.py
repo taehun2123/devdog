@@ -18,7 +18,7 @@ import sys
 
 # ---------------------------------------------------------------- 설정
 
-CONFIG_NAME = '.ko-tech-writing.json'
+CONFIG_NAME = '.devdog.json'
 DEFAULTS = {
     'docRegister': 'hapsyo',      # 문서 본문 말투: hapsyo(~입니다) | haera(~이다) | any
     'commentRegister': 'any',     # 코드 주석 말투: hapsyo | haera | any
@@ -483,7 +483,7 @@ def format_hook(findings, limit=3):
     by_rule = {}
     for f in findings:
         by_rule.setdefault(f.rule, []).append(f)
-    parts = ['ko-tech-writing: 다음 위치의 문체 규칙 위반을 수정하십시오. 나머지 문장은 수정하지 마십시오.']
+    parts = ['DevDog: 다음 위치의 문체 규칙 위반을 수정하십시오. 나머지 문장은 수정하지 마십시오.']
     for rule, items in by_rule.items():
         head = items[0].message() if rule == 'register-mix' else RULES[rule][1]
         parts.append(f'[{rule}] {head}')
@@ -611,7 +611,7 @@ def main(argv):
             data = json.load(sys.stdin)
             result = hook_post(data) if args[1] == 'post' else hook_pre(data)
         except Exception as e:  # 훅 오류로 작업을 막지 않는다
-            result = {'systemMessage': f'ko-tech-writing 훅 오류: {e}'}
+            result = {'systemMessage': f'DevDog 훅 오류: {e}'}
         print(json.dumps(result, ensure_ascii=False))
         return 0
     if args[:1] == ['--commit-msg']:

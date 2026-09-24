@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 0.2.0 (2026-09-24)
+
+- 플러그인 이름을 `ko-tech-writing`에서 DevDog(식별자 `devdog`)으로 변경
+- 스킬 이름 변경: `ko-tech-writing` → `devdog:writing`, `ko-tech-migrate` → `devdog:migrate`
+- 출력 스타일 이름 변경: `ko-tech` → `devdog`
+- 설정 파일 이름 변경: `.ko-tech-writing.json` → `.devdog.json`
+- 저장소 주소 변경: `taehun2123/ko-tech-writing` → `taehun2123/devdog`
+- 설치 명령 변경: `claude plugin marketplace add taehun2123/devdog`, `claude plugin install devdog@devdog`
+
 ## 0.1.0 (2026-09-24)
 
 - 작성 스킬 `ko-tech-writing`: 요소별 말투, 제목·표 칸 명사형, 비유·의인화 대신 기술 용어, 부연 문장 삭제 규칙
