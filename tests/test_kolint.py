@@ -136,8 +136,30 @@ class Commit(unittest.TestCase):
         self.assertIn('commit-subject', self.lint('fix: 로그인 오류를 수정했다'))
         self.assertIn('commit-subject', self.lint('버그를 고친다.'))
         self.assertIn('commit-subject', self.lint('fix(auth): 토큰 갱신 수정해요'))
-        self.assertEqual(self.lint('fix(auth): 토큰 갱신 오류 수정\n\n본문은 문장으로 작성합니다.'), [])
+        self.assertEqual(self.lint('fix(auth): 토큰 갱신 오류 수정\n\n- 만료 임박 토큰 재발급 누락'), [])
         self.assertEqual(self.lint('Fix login bug.'), [])
+
+    def test_body(self):
+        ok = 'fix(auth): 토큰 갱신 실패 오류 수정\n\n- 만료 7일 전 갱신 요청 401 거절 원인 제거\n- 리프레시 토큰 재발급'
+        self.assertEqual(self.lint(ok), [])
+        self.assertIn('commit-body-style', self.lint('fix: 오류 수정\n\n토큰 갱신 로직을 고쳤습니다.'))
+        self.assertIn('commit-body-style', self.lint('fix: 오류 수정\n\n- 쿼리 수를 줄였다'))
+        self.assertNotIn('commit-body-style', self.lint('fix: 오류 수정\n\n토큰 갱신 로직을 고쳤습니다.', commitBody='any'))
+        self.assertIn('commit-body-separator', self.lint('fix: 오류 수정\n- 원인 제거'))
+        self.assertEqual(self.lint('ci: 빌더 상태 유지\n\n- 캐시 업로드 325초 소요\n- 앱 재빌드 필요'), [])
+        self.assertIn('commit-body-style', self.lint('fix: 오류 수정\n\n- 재시작하면 돼요'))
+
+    def test_file_list(self):
+        self.assertIn('commit-file-list', self.lint('fix: RecruitmentServiceImpl.java 수정'))
+        self.assertIn('commit-file-list', self.lint('refactor: fetchMe() 분리'))
+        self.assertIn('commit-file-list', self.lint('perf: 목록 조회 개선\n\n- `UserSummaryMapper.java`: 일괄 조회 추가'))
+        self.assertEqual(self.lint('perf(list): 작성자 요약 일괄 조회 적용\n\n- 쿼리 200회에서 6회로 감소'), [])
+
+    def test_signature_and_emoji(self):
+        self.assertIn('commit-signature', self.lint('feat: 캐시 추가\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'))
+        self.assertIn('commit-signature', self.lint('feat: 캐시 추가\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)'))
+        self.assertEqual(self.lint('feat: 캐시 추가\n\nCo-Authored-By: Kim <kim@example.com>'), [])
+        self.assertIn('commit-emoji', self.lint('feat: ✨ 캐시 추가'))
 
     def test_trailer(self):
         msg = 'feat: 목록 캐시 추가\n\nCo-Authored-By: bot <a@b.c>'

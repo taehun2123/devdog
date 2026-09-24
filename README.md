@@ -55,9 +55,9 @@
 |---|---|---|
 | 작성 스킬 `devdog:writing` | `skills/writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
 | 전환 스킬 `devdog:migrate` | `skills/migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
-| 검사기 | `scripts/kolint.py` | 규칙 9종 검사, CLI·훅 겸용 |
+| 검사기 | `scripts/kolint.py` | 규칙 14종 검사, CLI·훅 겸용 |
 | 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
-| 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit -m` 제목 검사, 위반 시 실행 거부 |
+| 커밋 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit` 메시지의 제목·본문 검사, 위반 시 실행 거부 |
 | 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
 | 출력 스타일 `devdog` | `output-styles/devdog.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
 
@@ -101,7 +101,14 @@ error 등급 위반이 있으면 종료 코드 1을 반환하므로 CI나 git `c
 | `register-mix` | error | 설정한 말투와 다른 종결어미 |
 | `filler` | error | "이게 전부입니다", "~하는 셈입니다" 등 부연 문장 |
 | `commit-subject` | error | 문장형으로 끝나는 커밋 제목 |
+| `commit-body-separator` | error | 커밋 제목과 본문 사이 빈 줄 누락 |
+| `commit-body-style` | error | 개조식이 아닌 문장형 커밋 본문 (`commitBody: bullet`일 때) |
+| `commit-signature` | error | `Co-Authored-By: Claude`, `🤖 Generated with` 등 AI 도구 서명 |
+| `commit-emoji` | error | 커밋 메시지의 이모지 |
 | `commit-trailer` | error | 설정으로 금지한 커밋 트레일러 |
+| `commit-file-list` | warn | 커밋 제목·본문 항목의 파일·함수 이름 나열 |
+
+Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를 추가합니다. `commit-signature` 규칙은 이 커밋을 거부하므로 Claude가 트레일러를 빼고 다시 커밋합니다. 트레일러를 유지하려면 설정의 `rules`에서 `commit-signature`를 `off`로 지정하십시오.
 | `metaphor` | warn | 비유·의인화·대화체 어휘 약 50종 |
 | `em-dash-aside` | warn | 긴 대시 부가 설명 |
 | `particle-spacing` | warn | 영문·코드·숫자 뒤 조사 띄어쓰기 |
@@ -196,6 +203,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
   "docRegister": "hapsyo",
   "commentRegister": "haera",
   "commitSubject": "noun",
+  "commitBody": "bullet",
   "forbidTrailers": ["Co-Authored-By"],
   "exclude": ["**/db/migration/**", "docs/archive/**"],
   "allow": ["서비스 고유 용어"],
@@ -208,6 +216,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 | `docRegister` | `hapsyo` | 문서 본문 말투. `hapsyo`(~입니다), `haera`(~이다), `any` |
 | `commentRegister` | `any` | 코드 주석 말투. 값은 `docRegister`와 같음 |
 | `commitSubject` | `noun` | 커밋 제목 형식. `noun`, `any` |
+| `commitBody` | `bullet` | 커밋 본문 형식. `bullet`(짧은 개조식), `any` |
 | `forbidTrailers` | `[]` | 금지할 커밋 트레일러 이름 |
 | `exclude` | 빌드 산출물·의존성 폴더 | 추가로 제외할 glob |
 | `allow` | `[]` | 검사하지 않을 어구 |

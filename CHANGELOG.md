@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 0.3.0 (2026-09-24)
+
+- 커밋 본문 규칙 추가: 제목·본문 사이 빈 줄(`commit-body-separator`), 짧은 개조식 본문(`commit-body-style`)
+- 커밋 금지 항목 검사 추가: AI 도구 서명·공동작업 표기(`commit-signature`), 이모지(`commit-emoji`), 파일·함수 이름 나열(`commit-file-list`)
+- 설정 키 `commitBody` 추가 (`bullet` 기본값, `any`)
+- 해요체 판정 수정: "필요", "소요"처럼 "요"로 끝나는 명사는 문장형으로 판정하지 않음
+- 작성 스킬 규칙 문서의 커밋 메시지 절을 제목·본문·금지 항목으로 재작성
+
 ## 0.2.0 (2026-09-24)
 
 - 플러그인 이름을 `ko-tech-writing`에서 DevDog(식별자 `devdog`)으로 변경

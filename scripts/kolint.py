@@ -23,6 +23,7 @@ DEFAULTS = {
     'docRegister': 'hapsyo',      # 문서 본문 말투: hapsyo(~입니다) | haera(~이다) | any
     'commentRegister': 'any',     # 코드 주석 말투: hapsyo | haera | any
     'commitSubject': 'noun',      # 커밋 제목: noun(명사형) | any
+    'commitBody': 'bullet',       # 커밋 본문: bullet(짧은 개조식) | any
     'forbidTrailers': [],         # 커밋 메시지에서 금지할 트레일러 이름
     'exclude': [],                # 검사 제외 glob (기본 제외 목록에 추가)
     'allow': [],                  # 검사하지 않을 어구
@@ -79,6 +80,11 @@ RULES = {
     'particle-spacing': ('warn', '영문·코드·숫자 뒤 조사 띄어씀. 조사를 붙여 씀'),
     'commit-subject': ('error', '커밋 제목이 문장형으로 끝남. 명사형 요약으로 수정'),
     'commit-trailer': ('error', '금지된 커밋 트레일러'),
+    'commit-body-separator': ('error', '커밋 제목과 본문 사이 빈 줄 누락'),
+    'commit-body-style': ('error', '커밋 본문이 문장형으로 끝남. 변경 이유를 짧은 개조식으로 작성'),
+    'commit-file-list': ('warn', '커밋 메시지에 파일·함수 이름 나열. 변경 대상과 이유로 작성'),
+    'commit-signature': ('error', 'AI 도구 서명·공동작업 표기. 삭제'),
+    'commit-emoji': ('error', '커밋 메시지에 이모지 사용. 삭제'),
 }
 REGISTER_NAME = {'hapsyo': '~입니다·~하십시오', 'haera': '~이다·~한다'}
 
@@ -415,7 +421,18 @@ def lint_code(text, path, cfg, kind):
 
 # ---------------------------------------------------------------- 커밋 메시지
 
+# 문장형 종결: ~다, 해요체. '필요'·'소요'처럼 '요'로 끝나는 명사는 제외한다
+SENTENCE_END = re.compile(r'(?:[가-힣]다|(?:[해돼어아여워와봐세예줘져]|에)요)[.!]?$')
 CONVENTIONAL = re.compile(r'^[A-Za-z]+(?:\([^)]*\))?!?:\s*')
+TRAILER = re.compile(r'^[A-Za-z][A-Za-z-]*:\s')
+BULLET = re.compile(r'^(?:[-*•]|\d+[.)])\s+')
+FILE_TOKEN = re.compile(r'(?<![\w/.-])`?[\w./-]+\.(?:java|kt|kts|ts|tsx|js|jsx|mjs|py|go|rs|rb|php|swift|c|h|cc|cpp|'
+                        r'cs|scala|dart|sql|md|json|ya?ml|toml|xml|gradle|sh|css|scss|html)`?(?![\w])')
+FUNC_TOKEN = re.compile(r'(?<![\w.])[A-Za-z_]\w*\(\)')
+AI_SIGNATURE = re.compile(r'🤖|Generated (?:with|by) .*(?:Claude|Copilot|ChatGPT|Codex|Cursor|Gemini)'
+                          r'|^Co-Authored-By:.*(?:Claude|Copilot|ChatGPT|GPT|Codex|Cursor|Gemini|anthropic|openai)',
+                          re.I)
+EMOJI = re.compile('[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B50\u2B55\uFE0F]')
 
 
 def lint_commit(msg, cfg, path='COMMIT_EDITMSG'):
@@ -423,6 +440,8 @@ def lint_commit(msg, cfg, path='COMMIT_EDITMSG'):
     lines = [l for l in msg.split('\n') if not l.startswith('#')]
     while lines and not lines[0].strip():
         lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
     if not lines:
         return out
 
@@ -433,12 +452,31 @@ def lint_commit(msg, cfg, path='COMMIT_EDITMSG'):
 
     subject = CONVENTIONAL.sub('', lines[0].strip())
     if cfg['commitSubject'] == 'noun' and HANGUL.search(subject):
-        if re.search(r'(?:[가-힣]다|[가-힣]요|[.!])$', subject):
+        if SENTENCE_END.search(subject) or subject.endswith(('.', '!')):
             add('commit-subject', 1)
+    m = FILE_TOKEN.search(subject) or FUNC_TOKEN.search(subject)
+    if m:
+        add('commit-file-list', 1, f'"{m.group(0)}"')
+    if len(lines) > 1 and lines[1].strip():
+        add('commit-body-separator', 2)
     for n, line in enumerate(lines, 1):
+        if AI_SIGNATURE.search(line):
+            add('commit-signature', n)
+        elif EMOJI.search(line):
+            add('commit-emoji', n)
         if HANGUL.search(line):
             spans = protected_spans(line, cfg)
             check_prose(line, spans, 'any', lambda r, d='', _n=n: add(r, _n, d))
+        if n == 1:
+            continue
+        text = line.strip()
+        if not text or TRAILER.match(text):
+            continue
+        item = BULLET.sub('', text)
+        if cfg.get('commitBody') == 'bullet' and HANGUL.search(item) and SENTENCE_END.search(item):
+            add('commit-body-style', n)
+        if BULLET.match(text) and FILE_TOKEN.match(item):
+            add('commit-file-list', n, f'"{FILE_TOKEN.match(item).group(0)}"')
     for name in cfg.get('forbidTrailers', []):
         for n, line in enumerate(lines, 1):
             if re.match(re.escape(name) + r'\s*:', line, re.I):
