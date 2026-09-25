@@ -121,6 +121,8 @@ chmod +x .git/hooks/commit-msg
 | `register-mix` | error | 설정한 말투와 다른 종결어미 |
 | `filler` | error | "이게 전부입니다", "~하는 셈입니다" 등 부연 문장 |
 | `metaphor` | warn | 비유·의인화·대화체 어휘 약 50종 |
+| `native-verb` | warn | 순우리말 동작 동사(`두다`·`늘리다`·`줄이다`·`넘다`) |
+| `comment-narrative` | warn | 항목 없이 `~다` 문장이 3개 이상인 주석 블록 |
 | `em-dash-aside` | warn | 긴 대시 부가 설명 |
 | `particle-spacing` | warn | 영문·코드·숫자 뒤 조사 띄어쓰기 |
 
@@ -150,7 +152,7 @@ fix(auth): 토큰 갱신 실패 오류 수정
 | `pr-signature` | error | PR 본문의 `🤖 Generated with` 등 AI 도구 서명 |
 | `pr-emoji` | error | PR 제목·본문의 이모지 |
 
-문서 규칙 중 `metaphor`, `filler`, `em-dash-aside`, `particle-spacing`은 커밋 메시지에도 적용됩니다. `git commit -v`가 붙이는 구분선 아래 디프는 검사하지 않습니다. PR 본문에는 문서 규칙(제목, 표 칸, 비유, 부연, 긴 대시, 조사 띄어쓰기)도 적용하며, 개조식 본문이 많으므로 말투는 검사하지 않습니다.
+문서 규칙 중 `metaphor`, `native-verb`, `filler`, `em-dash-aside`, `particle-spacing`은 커밋 메시지에도 적용됩니다. `git commit -v`가 붙이는 구분선 아래 디프는 검사하지 않습니다. PR 본문에는 문서 규칙(제목, 표 칸, 비유, 동작 동사, 부연, 긴 대시, 조사 띄어쓰기)도 적용하며, 개조식 본문이 많으므로 말투는 검사하지 않습니다.
 
 Claude Code는 기본 설정에서 커밋 메시지에 `Co-Authored-By: Claude` 트레일러를, PR 본문에 `🤖 Generated with Claude Code` 서명을 추가합니다. `commit-signature`·`pr-signature` 규칙은 이 커밋과 PR을 거부하므로 Claude가 서명을 빼고 다시 실행합니다. 서명을 처음부터 추가하지 않게 하려면 Claude Code 설정(`~/.claude/settings.json`)에 다음 항목을 추가하십시오. 빈 문자열은 서명을 숨긴다는 의미입니다.
 

@@ -84,7 +84,7 @@ class Markdown(unittest.TestCase):
         self.assertIn('register-mix', rules('이 값은 서버가 계산한다.'))
         self.assertNotIn('register-mix', rules('이 값은 서버가 계산합니다.'))
         self.assertIn('register-mix', rules('이 값은 서버가 계산합니다.', docRegister='haera'))
-        self.assertEqual(rules('> 인용한 원문은 그대로 둔다.'), [])
+        self.assertEqual(rules('> 인용한 원문은 그대로 유지한다.'), [])
 
     def test_protected(self):
         doc = '```\n서버가 넘어졌다.\n```\n`답을` 이라는 변수와 "서버가 죽었다" 인용은 검사하지 않습니다.'
@@ -126,6 +126,23 @@ class Comments(unittest.TestCase):
     def test_hash_comment(self):
         self.assertIn('metaphor', rules('#!/bin/sh\nx=1  # 서버가 죽으면 재시작\n', 'run.sh'))
         self.assertEqual(rules('print("# 서버가 죽었다")\n', 'a.py'), [])
+
+    def test_native_verb(self):
+        for bad in ('// 높이를 늘린다\n', '// 기본값을 그대로 둔다\n', '// 줄높이가 상자 높이를 넘는다\n'):
+            self.assertIn('native-verb', rules(bad, 'a.ts'), bad)
+        self.assertIn('native-verb', rules('캐시 크기를 줄입니다.\n'))
+        for ok in ('// 높이 확대\n', '// 두 개의 값\n', '// 한 줄이 추가된다\n', '// 서버가 넘어지면\n'):
+            self.assertNotIn('native-verb', rules(ok, 'a.ts'), ok)
+
+    def test_comment_narrative(self):
+        narrative = ('/*\n * 높이를 고정한다. 글자를 확대하면 잘린다.\n'
+                     ' * 그래서 최소 높이를 사용한다.\n */\n')
+        sectioned = ('/**\n * 최소 높이 설정\n * - 원인: 확대 줄높이가 내부 높이 초과\n'
+                     ' * - 고정 높이 사용 시 라벨 과도 축소\n */\n')
+        self.assertIn('comment-narrative', rules(narrative, 'a.ts'))
+        self.assertNotIn('comment-narrative', rules(sectioned, 'a.ts'))
+        self.assertNotIn('comment-narrative', rules('// 첫 문장이다.\n// 둘째 문장이다.\n', 'a.ts'))
+        self.assertNotIn('comment-narrative', rules(narrative, 'a.ts', rules={'comment-narrative': 'off'}))
 
 
 class Commit(unittest.TestCase):

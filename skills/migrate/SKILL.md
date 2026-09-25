@@ -61,12 +61,12 @@ python3 $K/polite.py docs/guide.md                      # 파일 수정
 python3 $K/comment_blocks.py src/ > blocks.txt     # 위반이 있는 주석 블록과 줄 번호
 ```
 
-`blocks.txt`를 읽고 블록마다 새 본문을 스펙 파일로 작성하십시오. 주석 기호와 들여쓰기는 도구가 유지하므로 본문만 씁니다.
+`blocks.txt`를 읽고 블록마다 새 본문을 스펙 파일로 작성하십시오. 주석 기호와 들여쓰기는 도구가 유지하므로 본문만 씁니다. 서술형 블록은 명사형 제목과 `- 라벨: 내용` 항목으로 재구성하십시오([rules.md §10](../writing/references/rules.md)).
 
 ```text
 @@ src/main/java/app/CacheConfig.java:18-21
-캐시 대상은 좌표 → 행정구역 변환 결과다.
-같은 좌표는 항상 같은 지역을 반환하므로 오래 보관해도 안전하다.
+좌표 → 행정구역 변환 결과 캐시
+- 기준: 같은 좌표는 항상 같은 지역을 반환하므로 장기 보관 가능
 @@ src/app/Sheet.tsx:94-94
 드래그 이동량은 다시 열 때 초기화한다
 ```

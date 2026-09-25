@@ -75,6 +75,8 @@ RULES = {
     'table-cell-sentence': ('error', '표 칸이 "~다" 문장으로 끝남. "~함"·"~음"·명사구로 수정'),
     'register-mix': ('error', '설정한 말투({reg})와 다른 종결어미. 말투 통일'),
     'metaphor': ('warn', '비유·대화체 어휘. 기술 용어로 수정'),
+    'native-verb': ('warn', '순우리말 동작 동사. 한자어 기술 동사로 수정'),
+    'comment-narrative': ('warn', '서술형 주석 블록. 명사형 제목과 "- 항목" 형식으로 분리'),
     'filler': ('error', '정보를 더하지 않는 부연 문장. 삭제'),
     'em-dash-aside': ('warn', '긴 대시 부가 설명. 다음 문장이나 별도 항목으로 분리'),
     'particle-spacing': ('warn', '영문·코드·숫자 뒤 조사 띄어씀. 조사를 붙여 씀'),
@@ -146,6 +148,18 @@ LEXICON = [
 ]
 LEXICON = [(re.compile(p), hint) for p, hint in LEXICON]
 
+# 순우리말 동작 동사 → 한자어 기술 동사. '두 개'·'한 줄이'·'넘어지다' 오탐 방지를 위해 활용형만 검출
+NATIVE_VERB = [
+    (r'(?<![가-힣])(?:둔다|둡니다|두었|두어|둬|두면|두십시오)', '설정·배치·유지'),
+    (r'늘[리린려렸립]|늘어[나난났]', '확대·증가'),
+    (r'줄인다|줄였|줄여|줄입니다|줄어[들든드]', '축소·감소'),
+    (r'넘는다|넘었|넘으면|넘어서|넘습니다|넘을|넘친|넘쳐', '초과'),
+]
+NATIVE_VERB = [(re.compile(p), hint) for p, hint in NATIVE_VERB]
+# 주석 항목 줄: 목록·번호·인용·제목
+COMMENT_ITEM = re.compile(r'^\s*(?:[-*•>#]|\d+[.)])\s')
+NARRATIVE_MIN_SENTENCES = 3
+
 FILLER = re.compile(
     r'(?:이게|이것이|그게|그것이|이상이|이 \d+[개가지]*[가이]?) 전부(?:입니다|이다|다)'
     r'|(?:이게|이것이|그게) 핵심(?:입니다|이다)'
@@ -216,6 +230,11 @@ def check_prose(text, spans, register, add, check_register=True):
         for m in pat.finditer(text):
             if free(m, spans):
                 add('metaphor', f'"{m.group(0).strip()}" → {hint}')
+                break
+    for pat, hint in NATIVE_VERB:
+        for m in pat.finditer(text):
+            if free(m, spans):
+                add('native-verb', f'"{m.group(0)}" → {hint}')
                 break
     for m in FILLER.finditer(text):
         if free(m, spans):
@@ -419,6 +438,30 @@ def lint_code(text, path, cfg, kind):
         if head and heading_violation(head.group(1)):
             add('heading-sentence')
         check_prose(body, spans, cfg['commentRegister'], add, check_register=not head)
+    out.extend(narrative_blocks(lines, kind, path, cfg, skip))
+    return out
+
+
+def narrative_blocks(lines, kind, path, cfg, skip):
+    """항목 없이 '~다' 문장이 3개 이상인 연속 주석 블록. 블록 첫 줄에 보고한다."""
+    sev = severity(cfg, 'comment-narrative')
+    if sev == 'off':
+        return []
+    blocks = []
+    for i, body in comment_texts(lines, kind):
+        if blocks and blocks[-1][-1][0] == i - 1:
+            blocks[-1].append((i, body))
+        else:
+            blocks.append([(i, body)])
+    out = []
+    for block in blocks:
+        first = block[0][0]
+        bodies = [b for _, b in block]
+        if first in skip or any(COMMENT_ITEM.match(b) for b in bodies):
+            continue
+        sentences = sum(1 for b in bodies for m in DA_WORD.finditer(b) if is_sentence_da(m.group(1)))
+        if sentences >= NARRATIVE_MIN_SENTENCES:
+            out.append(Finding('comment-narrative', path, first, lines[first - 1], sev, f'{sentences}문장'))
     return out
 
 
