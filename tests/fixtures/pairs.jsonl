@@ -166,3 +166,6 @@
 {"id": 166, "kind": "md", "ext": ".md", "header": null, "before": "**이게 전부입니다.** 서버 응답은 하나도 저장하지 않습니다 →", "after": "서버 응답은 저장하지 않습니다 →", "expect": ["filler"]}
 {"id": 167, "kind": "md", "ext": ".md", "header": null, "before": "셈이 된다.", "after": "발생하게 됩니다.", "expect": ["filler", "register-mix"]}
 {"id": 168, "kind": "comment", "ext": ".java", "header": null, "before": "     * 그 평가를 자기신고로 뒤집는 셈이 된다.", "after": "     * 그 평가를 자기신고로 무효화하게 된다.", "expect": ["filler"]}
+{"id": 169, "kind": "md", "ext": ".md", "header": null, "before": "- 상대가 나간 대화가 있으면 대화 목록 전체가 크래시했습니다.", "after": "- 상대가 나간 채팅방이 있으면 채팅 목록 화면 전체가 강제 종료됐습니다.", "expect": ["plain-term"]}
+{"id": 170, "kind": "md", "ext": ".md", "header": null, "before": "- 남은 사용자가 나간 상대에게 메시지를 보낼 수 없었습니다. 방은 표시되지만 전송이 차단됐습니다.", "after": "- 남은 사용자가 나간 상대에게 메시지를 보낼 수 없었습니다. 채팅방은 표시되지만 메시지가 전송되지 않았습니다.", "expect": ["plain-term"]}
+{"id": 171, "kind": "md", "ext": ".md", "header": null, "before": "- 단체 대화 도입으로 `peer`를 선택 값으로 변경했지만 사용 위치에서 `!`로 존재를 단언했습니다.", "after": "- 단체 채팅 도입으로 `peer`를 선택 값으로 변경했습니다. 하지만 사용 위치에서는 `!`로 `peer`에 필수 조건을 걸었습니다.", "expect": ["plain-term"]}

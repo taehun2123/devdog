@@ -134,6 +134,12 @@ class Comments(unittest.TestCase):
         for ok in ('// 높이 확대\n', '// 두 개의 값\n', '// 한 줄이 추가된다\n', '// 서버가 넘어지면\n'):
             self.assertNotIn('native-verb', rules(ok, 'a.ts'), ok)
 
+    def test_plain_term(self):
+        for bad in ('앱이 크래시했습니다.\n', '`!`로 존재를 단언했습니다.\n', '메시지 전송이 차단됐습니다.\n'):
+            self.assertIn('plain-term', rules(bad), bad)
+        for ok in ('앱이 강제 종료됐습니다.\n', '사용자를 차단합니다.\n', '중복 요청을 차단합니다.\n'):
+            self.assertNotIn('plain-term', rules(ok), ok)
+
     def test_comment_narrative(self):
         narrative = ('/*\n * 높이를 고정한다. 글자를 확대하면 잘린다.\n'
                      ' * 그래서 최소 높이를 사용한다.\n */\n')

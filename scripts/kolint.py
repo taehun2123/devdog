@@ -76,6 +76,7 @@ RULES = {
     'register-mix': ('error', '설정한 말투({reg})와 다른 종결어미. 말투 통일'),
     'metaphor': ('warn', '비유·대화체 어휘. 기술 용어로 수정'),
     'native-verb': ('warn', '순우리말 동작 동사. 한자어 기술 동사로 수정'),
+    'plain-term': ('warn', '읽기 어려운 번역어. 쉬운 표현으로 수정'),
     'comment-narrative': ('warn', '서술형 주석 블록. 명사형 제목과 "- 항목" 형식으로 분리'),
     'filler': ('error', '정보를 더하지 않는 부연 문장. 삭제'),
     'em-dash-aside': ('warn', '긴 대시 부가 설명. 다음 문장이나 별도 항목으로 분리'),
@@ -139,7 +140,7 @@ LEXICON = [
     (r'고른다|고르는', '선택'),
     (r'잡[았는혀힌](?:다)?|잡아낸', '발견·검출·획득'),
     (r'적는다|적어 ?[두둔놓]|적었', '입력·기록'),
-    (r'막는다|막[혀힌혔]', '방지·차단'),
+    (r'막는다|막[혀힌혔]', '방지·차단(메시지 전송은 전송되지 않음)'),
     (r'(?<![가-힣])(?:돈다|돌린다|돌려 ?[보봤])', '실행'),
     (r'(?<![가-힣])돌려[주준줘줄]', '반환'),
     (r'깨[진져졌]', '실패·손상'),
@@ -156,6 +157,14 @@ NATIVE_VERB = [
     (r'넘는다|넘었|넘으면|넘어서|넘습니다|넘을|넘친|넘쳐', '초과'),
 ]
 NATIVE_VERB = [(re.compile(p), hint) for p, hint in NATIVE_VERB]
+
+# 번역어·전문어 → 읽기 쉬운 표현. '대화 → 채팅'처럼 도메인에 따라 다른 용어는 넣지 않는다
+PLAIN_TERM = [
+    (r'크래시', '강제 종료·비정상 종료'),
+    (r'단언', '필수 조건·조건을 건 위치'),
+    (r'전송(?:이|은|을)?\s?차단', '전송되지 않음·전송 실패'),
+]
+PLAIN_TERM = [(re.compile(p), hint) for p, hint in PLAIN_TERM]
 # 주석 항목 줄: 목록·번호·인용·제목
 COMMENT_ITEM = re.compile(r'^\s*(?:[-*•>#]|\d+[.)])\s')
 NARRATIVE_MIN_SENTENCES = 3
@@ -235,6 +244,11 @@ def check_prose(text, spans, register, add, check_register=True):
         for m in pat.finditer(text):
             if free(m, spans):
                 add('native-verb', f'"{m.group(0)}" → {hint}')
+                break
+    for pat, hint in PLAIN_TERM:
+        for m in pat.finditer(text):
+            if free(m, spans):
+                add('plain-term', f'"{m.group(0)}" → {hint}')
                 break
     for m in FILLER.finditer(text):
         if free(m, spans):
