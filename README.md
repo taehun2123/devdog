@@ -77,7 +77,7 @@ claude plugin marketplace add taehun2123/devdog
 claude plugin install devdog@devdog
 ```
 
-`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. macOS에서 확인했으며 Windows는 확인하지 않았습니다.
+`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. CI에서 Ubuntu·macOS·Windows와 Python 3.8·3.14 조합을 검사합니다.
 
 ## 3. 사용 방법
 

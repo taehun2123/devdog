@@ -36,6 +36,10 @@ class Polite(unittest.TestCase):
             self.assertEqual(polite.convert(src), src, src)
         self.assertEqual(polite.convert('```\n유지된다.\n```'), '```\n유지된다.\n```')
 
+    def test_uncertain_endings_are_not_corrupted(self):
+        for src in ['상태가 나쁘다.', '화면이 예쁘다.', '사용자가 기쁘다.', '결과가 슬프다.', '값을 고르다.']:
+            self.assertEqual(polite.convert(src), src, src)
+
 
 class CommentApply(unittest.TestCase):
     def test_apply_and_verify(self):
@@ -68,6 +72,79 @@ class CommentApply(unittest.TestCase):
     def test_hash_comment_render(self):
         self.assertEqual(comment_apply.render(['  # 서버가 죽으면', '  # 재시작'], ['서버 장애 시 재시작']),
                          ['  # 서버 장애 시 재시작'])
+
+    def test_apply_preserves_crlf(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = os.path.join(d, 'A.java')
+            spec = os.path.join(d, 'spec.txt')
+            comment_apply.write_utf8(src, 'class A {\r\n    // 이전 주석\r\n}\r\n')
+            comment_apply.write_utf8(spec, f'@@ {src}:2-2\n새 주석\n')
+            with contextlib.redirect_stdout(io.StringIO()):
+                comment_apply.main(spec)
+            self.assertEqual(comment_apply.read_utf8(src), 'class A {\r\n    // 새 주석\r\n}\r\n')
+
+    def test_apply_validates_all_files_before_writing(self):
+        with tempfile.TemporaryDirectory() as d:
+            first = os.path.join(d, 'A.java')
+            second = os.path.join(d, 'B.java')
+            spec = os.path.join(d, 'spec.txt')
+            write(first, '// 이전 주석\n')
+            write(second, 'int value = 1;\n')
+            comment_apply.write_utf8(spec, f'@@ {first}:1-1\n새 주석\n@@ {second}:1-1\n변경 시도\n')
+            with self.assertRaises(ValueError):
+                comment_apply.main(spec)
+            with open(first, encoding='utf-8') as fh:
+                self.assertEqual(fh.read(), '// 이전 주석\n')
+
+    def test_code_part_preserves_comment_markers_in_strings_and_directives(self):
+        self.assertEqual(comment_apply.code_part('const url = "https://old.example";', 'A.java'),
+                         'const url = "https://old.example";')
+        self.assertEqual(comment_apply.code_part('value = "a # old"', 'a.py'), 'value = "a # old"')
+        self.assertEqual(comment_apply.code_part('#include <old.h>', 'a.c'), '#include <old.h>')
+        self.assertEqual(comment_apply.code_part('int x = 1; /* 설명 */ int y = 2;', 'a.c'),
+                         'int x = 1;  int y = 2;')
+
+    def test_verify_detects_code_that_looks_like_comments(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = os.path.join(d, 'A.java')
+            write(src, 'const char* url = "https://old.example";\n#include <old.h>\n')
+            run = dict(cwd=d, capture_output=True, text=True)
+            subprocess.run(['git', 'init', '-q'], **run, check=True)
+            subprocess.run(['git', 'add', '.'], **run, check=True)
+            subprocess.run(['git', '-c', 'user.email=a@b', '-c', 'user.name=t',
+                            'commit', '-qm', 'init'], **run, check=True)
+            write(src, 'const char* url = "https://new.example";\n#include <new.h>\n')
+            cwd = os.getcwd()
+            os.chdir(d)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(comment_apply.verify(), 1)
+            finally:
+                os.chdir(cwd)
+
+    def test_verify_includes_staged_and_untracked_changes(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = os.path.join(d, 'A.java')
+            write(src, 'int value = 1;\n')
+            run = dict(cwd=d, capture_output=True, text=True)
+            subprocess.run(['git', 'init', '-q'], **run, check=True)
+            subprocess.run(['git', 'add', '.'], **run, check=True)
+            subprocess.run(['git', '-c', 'user.email=a@b', '-c', 'user.name=t',
+                            'commit', '-qm', 'init'], **run, check=True)
+            write(src, 'int value = 2;\n')
+            subprocess.run(['git', 'add', 'A.java'], **run, check=True)
+            cwd = os.getcwd()
+            os.chdir(d)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(comment_apply.verify(), 1)
+                write(src, 'int value = 1;\n')
+                subprocess.run(['git', 'add', 'A.java'], **run, check=True)
+                write(os.path.join(d, 'new.py'), 'value = 1\n')
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(comment_apply.verify(), 1)
+            finally:
+                os.chdir(cwd)
 
 
 if __name__ == '__main__':
