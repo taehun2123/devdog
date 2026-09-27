@@ -14,6 +14,7 @@ BASE, JONG_N, JONG_L, JONG_B = 0xAC00, 4, 8, 17
 ADJ_EXACT = {'크다': '큽니다'}
 ADJ_SUFFIX = {'다르다': '다릅니다', '빠르다': '빠릅니다', '느리다': '느립니다', '아니다': '아닙니다',
               '바쁘다': '바쁩니다', '아프다': '아픕니다', '이르다': '이릅니다', '흐리다': '흐립니다'}
+UNCERTAIN_SUFFIX = ('르다', '쁘다', '프다')
 
 
 def jong(ch):
@@ -36,6 +37,10 @@ def polite(word, prev):
     for suf, rep in ADJ_SUFFIX.items():
         if word.endswith(suf):
             return word[:-len(suf)] + rep
+    # 르·으 탈락과 ㅡ 불규칙 활용은 표면형만으로 안전하게 변환할 수 없다.
+    # 잘못된 문장을 만들기보다 원문을 유지해 후속 lint·사람 검토 대상으로 남긴다.
+    if word.endswith(UNCERTAIN_SUFFIX):
+        return word
     if word.endswith(('니다', '보다', '마다', '바다')):
         return word
     if word.endswith('는다') and len(word) > 2:

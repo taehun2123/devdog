@@ -17,6 +17,45 @@ import sys
 from collections import Counter, defaultdict
 
 COMMENT = re.compile(r'^(\s*)(///|//|/\*\*|/\*|\*|\{/\*|#|--)')
+C_LIKE_EXT = {'java', 'kt', 'kts', 'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'go', 'rs',
+              'swift', 'c', 'h', 'cc', 'cpp', 'hpp', 'cs', 'scala', 'dart', 'php',
+              'groovy', 'gradle', 'm', 'mm'}
+HASH_EXT = {'py', 'sh', 'bash', 'zsh', 'rb', 'yml', 'yaml', 'toml', 'r', 'pl', 'ps1'}
+DASH_EXT = {'sql', 'lua', 'hs'}
+
+
+def comment_kind(path):
+    ext = path.rsplit('.', 1)[-1].lower() if '.' in path else ''
+    base = path.replace('\\', '/').rsplit('/', 1)[-1]
+    if ext in C_LIKE_EXT:
+        return 'c'
+    if ext in HASH_EXT or base in ('Dockerfile', 'Makefile'):
+        return 'hash'
+    if ext in DASH_EXT:
+        return 'dash'
+    return None
+
+
+def read_utf8(path):
+    with open(path, encoding='utf-8', newline='') as fh:
+        return fh.read()
+
+
+def write_utf8(path, text):
+    with open(path, 'w', encoding='utf-8', newline='') as fh:
+        fh.write(text)
+
+
+def split_text(text):
+    """본문 줄과 기존 줄바꿈 형식을 반환한다."""
+    newline = '\r\n' if '\r\n' in text else '\r' if '\r' in text else '\n'
+    normalized = text.replace('\r\n', '\n').replace('\r', '\n')
+    return normalized.split('\n'), newline
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
 
 
 def render(orig, text):
@@ -25,13 +64,13 @@ def render(orig, text):
     body = [t.rstrip() for t in text]
     if not m:
         # 코드 줄 끝의 // 주석
-        assert len(orig) == 1 and '//' in first, f'주석이 아닌 줄: {first!r}'
+        require(len(orig) == 1 and '//' in first, f'주석이 아닌 줄: {first!r}')
         code = first.split('//', 1)[0].rstrip()
-        assert len(body) == 1
+        require(len(body) == 1, '줄 끝 주석은 한 줄로만 교체할 수 있음')
         return [f'{code} // {body[0]}']
     indent, marker = m.group(1), m.group(2)
     if marker == '{/*':
-        assert len(body) == 1
+        require(len(body) == 1, 'JSX 주석은 한 줄로만 교체할 수 있음')
         return [f'{indent}{{/* {body[0]} */}}']
     if marker in ('//', '///', '#', '--'):
         return [f'{indent}{marker} {t}' if t else f'{indent}{marker}' for t in body]
@@ -48,7 +87,7 @@ def render(orig, text):
 def main(spec_path):
     edits = defaultdict(list)
     cur = None
-    for line in open(spec_path).read().split('\n'):
+    for line in read_utf8(spec_path).splitlines():
         if line.startswith('@@ '):
             path, rng = line[3:].rsplit(':', 1)
             a, _, b = rng.partition('-')
@@ -56,34 +95,138 @@ def main(spec_path):
             edits[path].append(cur)
         elif cur is not None:
             cur[2].append(line)
+    updates = []
     for path, items in edits.items():
-        lines = open(path).read().split('\n')
+        lines, newline = split_text(read_utf8(path))
         for a, b, text in sorted(items, key=lambda x: -x[0]):
             while text and not text[-1].strip():
                 text.pop()
             orig = lines[a - 1:b]
             for o in orig[:-1] if len(orig) > 1 else []:
-                assert COMMENT.match(o), f'{path}:{a}-{b} 주석 아님: {o!r}'
+                require(COMMENT.match(o), f'{path}:{a}-{b} 주석 아님: {o!r}')
             if len(orig) > 1:
-                assert COMMENT.match(orig[-1]), f'{path}:{b} 주석 아님: {orig[-1]!r}'
+                require(COMMENT.match(orig[-1]), f'{path}:{b} 주석 아님: {orig[-1]!r}')
             lines[a - 1:b] = render(orig, text)
-        open(path, 'w').write('\n'.join(lines))
-        print(f'{path}: {len(items)}')
+        updates.append((path, newline.join(lines), len(items)))
+    # 모든 스펙을 검증한 뒤 기록해 중간 실패 시 일부 파일만 바뀌는 일을 방지한다.
+    for path, text, count in updates:
+        write_utf8(path, text)
+        print(f'{path}: {count}')
 
 
-def code_part(line):
-    """주석을 제외한 코드 부분. 주석만 있는 줄은 빈 문자열."""
-    if COMMENT.match(line) or line.strip().startswith(('*/', '{/*')):
-        return ''
-    for mark in ('//', ' #', '--'):
-        if mark in line:
-            line = line.split(mark, 1)[0]
-    return line.strip()
+def comment_index(line, marker):
+    """문자열 밖에서 시작하는 첫 주석 기호 위치."""
+    quote = None
+    escaped = False
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if escaped:
+            escaped = False
+        elif ch == '\\' and quote:
+            escaped = True
+        elif quote:
+            if ch == quote:
+                quote = None
+        elif ch in ('"', "'", '`'):
+            quote = ch
+        elif line.startswith(marker, i):
+            return i
+        i += 1
+    return -1
+
+
+def strip_c_comments(line):
+    """문자열을 보존하면서 한 줄의 C 계열 주석만 제거한다."""
+    out = []
+    quote = None
+    escaped = False
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if escaped:
+            out.append(ch)
+            escaped = False
+            i += 1
+            continue
+        if quote:
+            out.append(ch)
+            if ch == '\\':
+                escaped = True
+            elif ch == quote:
+                quote = None
+            i += 1
+            continue
+        if ch in ('"', "'", '`'):
+            quote = ch
+            out.append(ch)
+            i += 1
+            continue
+        if line.startswith('//', i):
+            break
+        if line.startswith('/*', i):
+            end = line.find('*/', i + 2)
+            if end == -1:
+                break
+            i = end + 2
+            continue
+        out.append(ch)
+        i += 1
+    return ''.join(out).strip()
+
+
+def code_part(line, path=''):
+    """주석을 제외한 코드 부분. 애매한 줄은 코드로 간주해 검증을 실패시킨다."""
+    stripped = line.strip()
+    ext = path.rsplit('.', 1)[-1].lower() if '.' in path else ''
+    kind = comment_kind(path)
+
+    if kind == 'c':
+        if stripped.startswith('//'):
+            return ''
+        if stripped.startswith('/*'):
+            end = stripped.find('*/', 2)
+            return stripped[end + 2:].strip() if end != -1 else ''
+        if stripped.startswith('*/'):
+            return stripped[2:].strip()
+        if re.match(r'^\*(?:\s|/|$)', stripped):
+            return ''
+        return strip_c_comments(line)
+    elif kind == 'hash':
+        if stripped.startswith('#!') or (ext == 'ps1' and re.match(r'#requires\b', stripped, re.I)):
+            return stripped
+        if stripped.startswith('#'):
+            return ''
+        markers = ('#',)
+    elif kind == 'dash':
+        if stripped.startswith('--'):
+            return ''
+        markers = ('--',)
+    else:
+        return stripped
+
+    positions = [pos for marker in markers if (pos := comment_index(line, marker)) >= 0]
+    return line[:min(positions)].strip() if positions else stripped
 
 
 def verify(rev=None):
-    diff = subprocess.run(['git', 'diff', '-U0'] + ([rev] if rev else []),
-                          capture_output=True, text=True, check=True).stdout
+    base = rev or 'HEAD'
+
+    def git_output(args):
+        return subprocess.run(['git'] + args, capture_output=True, text=True,
+                              encoding='utf-8', check=True).stdout
+
+    # HEAD와 비교해 staged·unstaged 변경을 모두 검사한다. 기본 git diff만 사용하면
+    # staged 변경이 누락되어 코드가 바뀌어도 통과할 수 있다.
+    diff = git_output(['diff', '-U0', base, '--'])
+    unsafe = []
+    for line in git_output(['diff', '--numstat', base, '--']).splitlines():
+        added_count, removed_count, changed_path = line.split('\t', 2)
+        if added_count == removed_count == '-':
+            unsafe.append((changed_path, '바이너리 변경은 주석 여부를 검증할 수 없음'))
+    for changed_path in git_output(['ls-files', '--others', '--exclude-standard', '-z']).split('\0'):
+        if changed_path and comment_kind(changed_path):
+            unsafe.append((changed_path, '추적되지 않은 새 파일은 기준 버전이 없어 검증할 수 없음'))
     bad, path = [], None
     removed, added = Counter(), Counter()
 
@@ -95,11 +238,11 @@ def verify(rev=None):
             flush()
             path, removed, added = line[6:], Counter(), Counter()
         elif line.startswith('-') and not line.startswith('---'):
-            code = code_part(line[1:])
+            code = code_part(line[1:], path)
             if code:
                 removed[code] += 1
         elif line.startswith('+'):
-            code = code_part(line[1:])
+            code = code_part(line[1:], path)
             if code:
                 added[code] += 1
     flush()
@@ -109,8 +252,11 @@ def verify(rev=None):
             print(f'  - {c}')
         for c in new:
             print(f'  + {c}')
-    print('주석 외 변경 없음' if not bad else f'확인 필요 파일 {len(bad)}개')
-    return 1 if bad else 0
+    for p, reason in unsafe:
+        print(f'{p}: {reason}')
+    count = len(bad) + len(unsafe)
+    print('주석 외 변경 없음' if not count else f'확인 필요 파일 {count}개')
+    return 1 if count else 0
 
 
 if __name__ == '__main__':
