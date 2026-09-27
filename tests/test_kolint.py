@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 import kolint  # noqa: E402
@@ -237,6 +238,14 @@ class PullRequest(unittest.TestCase):
 
 
 class Hooks(unittest.TestCase):
+    def test_post_cross_drive_path_does_not_crash(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'a.md')
+            write(p, '값을 들고 있습니다.\n')
+            with mock.patch('kolint.os.path.relpath', side_effect=ValueError("path is on mount 'C:', start on mount 'D:'")):
+                out = kolint.hook_post({'tool_name': 'Write', 'tool_input': {'file_path': p, 'content': ''}})
+            self.assertIn('additionalContext', out['hookSpecificOutput'])
+
     def test_post_edit_scope(self):
         with tempfile.TemporaryDirectory() as d:
             p = os.path.join(d, 'a.md')
