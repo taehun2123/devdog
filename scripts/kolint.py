@@ -61,7 +61,11 @@ def load_config(start='.', path=None):
 
 def is_excluded(cfg, path):
     root = cfg.get('_root') or os.getcwd()
-    rel = os.path.relpath(os.path.abspath(path), root).replace(os.sep, '/')
+    abspath = os.path.abspath(path)
+    try:
+        rel = os.path.relpath(abspath, root).replace(os.sep, '/')
+    except ValueError:
+        rel = abspath.replace('\\', '/')
     for pat in cfg['exclude']:
         if fnmatch.fnmatch(rel, pat) or (pat.startswith('**/') and fnmatch.fnmatch(rel, pat[3:])):
             return True
