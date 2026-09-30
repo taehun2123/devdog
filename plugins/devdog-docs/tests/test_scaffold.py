@@ -106,7 +106,7 @@ class Scaffold(unittest.TestCase):
         self.assertIn('https://github.com/example/docs/blob/main/human/how-to/write-docs.md', agents)
         tools = PLUGIN / 'templates' / 'tools' / 'check_docs.py'
         result = subprocess.run([sys.executable, str(tools), '--root', str(workspace / 'doc'), '--write-catalog', '--workspace'],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='replace')
         self.assertIn('Missing sibling repository', result.stdout)
         self.assertIn('; 1 errors.', result.stdout)
 

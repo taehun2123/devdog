@@ -60,7 +60,7 @@ class SingleLayout(unittest.TestCase):
 
     def check(self, *args):
         return subprocess.run([sys.executable, str(self.repo / 'scripts' / 'check_docs.py')] + list(args),
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='replace')
 
     def test_first_catalog_and_stale_catalog(self):
         result = self.check('--write-catalog')
@@ -135,7 +135,7 @@ class HubLayout(unittest.TestCase):
 
     def check(self, *args):
         return subprocess.run([sys.executable, str(self.doc / 'scripts' / 'check_docs.py')] + list(args),
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='replace')
 
     def test_workspace_checks_sibling_and_github_links(self):
         result = self.check('--write-catalog', '--workspace')
@@ -155,7 +155,7 @@ class HubLayout(unittest.TestCase):
         shutil.move(str(self.api), str(moved))
         env = dict(os.environ, DOCS_API_ROOT=str(moved))
         result = subprocess.run([sys.executable, str(self.doc / 'scripts' / 'check_docs.py'), '--write-catalog', '--workspace'],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, env=env)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='replace', env=env)
         self.assertEqual(result.returncode, 0, result.stdout)
 
 

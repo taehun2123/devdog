@@ -145,7 +145,7 @@ def npm_install(site):
 
 def npm(site, *args, env=None):
     result = subprocess.run(['npm', 'run'] + list(args), cwd=str(site), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            universal_newlines=True, env=dict(os.environ, **(env or {})))
+                            encoding='utf-8', errors='replace', env=dict(os.environ, **(env or {})))
     return result.returncode, result.stdout
 
 
@@ -168,7 +168,7 @@ class EndToEnd(unittest.TestCase):
             (root / 'docs-migration-plan.json').unlink()
             self.assertEqual(run(vendor, 'site', '--root', str(root))[0], 0)
             check = subprocess.run([sys.executable, str(root / 'scripts/check_docs.py'), '--write-catalog'],
-                                   stdout=subprocess.PIPE, universal_newlines=True)
+                                   stdout=subprocess.PIPE, encoding='utf-8', errors='replace')
             self.assertIn('0 errors', check.stdout)
             commit(root)
             site = root / 'docs-site'
@@ -200,7 +200,7 @@ class EndToEnd(unittest.TestCase):
             run(vendor, 'site', '--root', str(home))
             self.assertTrue((workspace / 'api/.github/workflows/notify-docs.yml').exists())
             check = subprocess.run([sys.executable, str(home / 'scripts/check_docs.py'), '--write-catalog', '--workspace'],
-                                   stdout=subprocess.PIPE, universal_newlines=True)
+                                   stdout=subprocess.PIPE, encoding='utf-8', errors='replace')
             self.assertIn('0 errors', check.stdout)
             for name in ['doc', 'api']:
                 commit(workspace / name)

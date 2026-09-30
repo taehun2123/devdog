@@ -197,4 +197,7 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
+    # Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 경로·문구 출력 시 UnicodeEncodeError 방지
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.exit(main())

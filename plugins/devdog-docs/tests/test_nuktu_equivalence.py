@@ -20,7 +20,7 @@ NODE_MODULES = os.environ.get('DEVDOG_DOCS_NODE_MODULES')
 
 
 def last_line(args, cwd):
-    result = subprocess.run(args, cwd=str(cwd), stdout=subprocess.PIPE, universal_newlines=True)
+    result = subprocess.run(args, cwd=str(cwd), stdout=subprocess.PIPE, encoding='utf-8', errors='replace')
     return result.stdout.strip().splitlines()[-1]
 
 

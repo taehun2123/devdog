@@ -107,12 +107,12 @@ class Migrate(unittest.TestCase):
         server = (self.root / 'server/README.md').read_text(encoding='utf-8')
         self.assertIn('[배포](../docs/human/how-to/deploy.md)', server)
         status = subprocess.run(['git', '-C', str(self.root), 'status', '--porcelain'], stdout=subprocess.PIPE,
-                                universal_newlines=True).stdout
+                                encoding='utf-8', errors='replace').stdout
         self.assertRegex(status, r'R. docs/DEPLOY.md -> docs/human/how-to/deploy.md')
         mapping = json.loads((self.root / 'migration-map.json').read_text(encoding='utf-8'))
         self.assertIn({'repository': 'app', 'from': 'docs/API.md', 'to': 'docs/human/reference/api.md'}, mapping['moves'])
         result = subprocess.run([sys.executable, str(TOOLS), '--root', str(self.root), '--write-catalog'],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='replace')
         self.assertNotIn('missing-link', result.stdout)
         self.assertNotIn('missing-anchor', result.stdout)
 
