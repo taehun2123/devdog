@@ -1,0 +1,21 @@
+name: Documentation check
+on:
+  pull_request:
+    paths: ['**.md', '{{ai}}/**', 'docs.config.json', 'catalog.json', 'scripts/check_docs.py', '.github/workflows/docs-check.yml']
+  push:
+    branches: [{{branch}}]
+    paths: ['**.md', '{{ai}}/**', 'docs.config.json', 'catalog.json', 'scripts/check_docs.py', '.github/workflows/docs-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check documents
+        run: python3 scripts/check_docs.py

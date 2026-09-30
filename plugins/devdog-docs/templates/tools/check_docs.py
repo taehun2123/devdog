@@ -51,7 +51,11 @@ def load_config(root, config_path):
         repos[name] = {
             'name': name,
             'root': path,
-            'url': spec.get('url', ''),
+            'home': is_home,
+            'local': spec.get('local', name),
+            'branch': spec.get('branch', 'main'),
+            'mount': spec.get('mount', name),
+            'url': spec.get('url', '').rstrip('/'),
             'human': human,
             'ai': ai,
             'checkRoots': spec.get('checkRoots', [human, ai]),
@@ -267,7 +271,8 @@ def main(argv=None):
                     parts = unquote(url.path).split('/')
                     if len(parts) >= 6 and parts[3] in ['blob', 'tree']:
                         target_root = known.get('/'.join(parts[:3]).lower())
-                        if target_root is not None and target_root in selected_roots:
+                        # A missing repository is already reported once; skip its links.
+                        if target_root is not None and target_root in selected_roots and target_root.is_dir():
                             target = target_root / '/'.join(parts[5:])
                     if target is None:
                         continue
