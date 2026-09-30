@@ -79,6 +79,14 @@ claude plugin install devdog@devdog
 
 `python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. CI에서 Ubuntu·macOS·Windows와 Python 3.8·3.14 조합을 검사합니다.
 
+### 문서 구조 플러그인
+
+같은 마켓플레이스에서 문서 구조·위키 플러그인 `devdog-docs`를 별도로 설치할 수 있습니다. 사람용·AI용 문서 폴더, 설정 기반 문서 검사기, 여러 저장소 문서를 모으는 GitHub Pages 위키를 설치합니다. 안내는 [plugins/devdog-docs](plugins/devdog-docs/README.md)에 있습니다.
+
+```bash
+claude plugin install devdog-docs@devdog
+```
+
 ## 3. 사용 방법
 
 ### 자동 적용
@@ -308,6 +316,7 @@ AI 코딩 도구로 한국어 문서, 커밋 메시지, 코드 주석을 작성�
 
 ```bash
 python3 -m unittest discover -s tests                 # 단위 테스트와 fixture 검사
+python3 -m unittest discover -s plugins/devdog-docs/tests   # devdog-docs 단위 테스트
 python3 scripts/kolint.py .                            # 이 저장소 문서도 같은 규칙을 적용
 claude plugin validate .claude-plugin/plugin.json      # 매니페스트 검증
 python3 evals/ablation.py --runs 2                     # 선택. 플러그인 있음·없음 비교 (Claude 사용량 발생)
