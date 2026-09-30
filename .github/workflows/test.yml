@@ -20,5 +20,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Run devdog-docs unit tests
+        run: python -m unittest discover -s plugins/devdog-docs/tests -v
       - name: Lint repository text
         run: python scripts/kolint.py .

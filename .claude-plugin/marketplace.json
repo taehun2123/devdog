@@ -12,6 +12,12 @@
       "description": "문서·커밋·코드 주석의 한국어 공학 문서체 규칙, 결정적 검사기, 일괄 전환 도구",
       "source": "./",
       "category": "productivity"
+    },
+    {
+      "name": "devdog-docs",
+      "description": "사람용·AI용 문서 구조, 설정 기반 문서 검사기, 여러 저장소 문서를 모으는 위키 사이트(GitHub Pages) 설치와 기존 문서 이전",
+      "source": "./plugins/devdog-docs",
+      "category": "productivity"
     }
   ]
 }
