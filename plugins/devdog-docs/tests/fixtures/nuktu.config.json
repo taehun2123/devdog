@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "layout": "hub",
+  "home": "doc",
+  "project": { "name": "NUKTU", "language": "ko" },
+  "catalog": { "compatibility": ["docs", "design"] },
+  "repositories": {
+    "doc": { "local": "doc", "url": "https://github.com/NUKTU/docs", "branch": "main", "human": "human", "ai": "ai", "mount": "guide", "checkRoots": ["human", "ai", "docs", "design"] },
+    "backend": { "local": "backend", "url": "https://github.com/NUKTU/Backend", "branch": "dev", "human": "docs/human", "ai": "docs/ai", "mount": "backend", "checkRoots": ["docs"], "extraDocuments": ["load-tests/README.md"] },
+    "frontend": { "local": "frontend", "url": "https://github.com/NUKTU/Frontend", "branch": "dev", "human": "docs/human", "ai": "docs/ai", "mount": "frontend", "checkRoots": ["docs"], "extraDocuments": ["scripts/android/README.md", "assets/tournament/README.md"], "skipOnConflict": ["assets/tournament/README.md"] },
+    "marketing": { "local": "marketing", "url": "https://github.com/NUKTU/marketing-site", "branch": "main", "human": "docs/human", "ai": "docs/ai", "mount": "marketing", "checkRoots": ["docs"] }
+  }
+}

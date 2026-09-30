@@ -1,0 +1,20 @@
+{
+  "name": "devdog-docs",
+  "version": "0.1.0",
+  "description": "DevDog Docs: 사람용·AI용 문서 폴더 구조, 설정 기반 문서 검사기, 여러 저장소 문서를 모으는 위키 사이트(VitePress·GitHub Pages)를 프로젝트에 설치하고 기존 문서를 새 구조로 이전합니다.",
+  "author": {
+    "name": "taehun2123",
+    "url": "https://github.com/taehun2123"
+  },
+  "license": "MIT",
+  "keywords": [
+    "devdog",
+    "documentation",
+    "docs-as-code",
+    "wiki",
+    "vitepress",
+    "github-pages",
+    "agents-md",
+    "문서"
+  ]
+}

@@ -20,5 +20,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Run devdog-docs unit tests
+        run: python -m unittest discover -s plugins/devdog-docs/tests -v
       - name: Lint repository text
         run: python scripts/kolint.py .
+
+  docs-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build single and hub fixture sites
+        env:
+          DEVDOG_DOCS_E2E: '1'
+        run: python -m unittest discover -s plugins/devdog-docs/tests -p test_site.py -v
