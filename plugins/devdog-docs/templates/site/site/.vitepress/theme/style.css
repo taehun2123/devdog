@@ -1,0 +1,63 @@
+/*
+ * 위키 기본 테마
+ * - 주 색상: docs.config.json site.primaryColor → --dd-primary (config.mts가 head에 설정)
+ * - 다크 모드: 주 색상을 흰색과 섞어 바탕 대비 확보
+ * - 수정 위치: 이 파일은 devdog-docs 업그레이드 대상. 프로젝트 색·글꼴은 custom.css에 작성
+ */
+:root {
+  --dd-primary: #3451b2;
+  --dd-soft-lift: 0 2px 10px rgba(26, 26, 36, 0.06);
+  --dd-floating: 0 6px 20px rgba(26, 26, 36, 0.14);
+  --vp-c-brand-1: var(--dd-primary);
+  --vp-c-brand-2: color-mix(in srgb, var(--dd-primary) 80%, black);
+  --vp-c-brand-3: var(--dd-primary);
+  --vp-c-brand-soft: color-mix(in srgb, var(--dd-primary) 8%, transparent);
+  --dd-table-border: #e5eaf2;
+  --dd-table-stripe: #f7f9fc;
+  --dd-table-head: #f1f4f9;
+  --vp-font-family-base: 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
+.dark {
+  --vp-c-brand-1: color-mix(in srgb, var(--dd-primary) 55%, white);
+  --vp-c-brand-2: color-mix(in srgb, var(--dd-primary) 40%, white);
+  --vp-c-brand-soft: color-mix(in srgb, var(--dd-primary) 20%, transparent);
+  --dd-table-border: #434c5c;
+  --dd-table-stripe: #141a24;
+  --dd-table-head: #2a313d;
+}
+
+.vp-doc { word-break: keep-all; overflow-wrap: anywhere; }
+.vp-doc p, .vp-doc li { line-height: 1.85; }
+.vp-doc th { white-space: nowrap; }
+.vp-doc a { font-weight: 600; text-decoration: none; }
+.vp-doc blockquote {
+  border-left: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background-color: var(--vp-c-bg-alt);
+}
+.vp-doc div[class*='language-'] { border-radius: 12px; }
+
+/* 표: 줄무늬는 바탕과 한 단계 차이, 경계선은 본문과 구분되는 색 */
+.vp-doc tr { border-top-color: var(--dd-table-border); }
+.vp-doc tr:nth-child(2n) { background-color: var(--dd-table-stripe); }
+.vp-doc th, .vp-doc td { border-color: var(--dd-table-border); padding: 10px 16px; line-height: 1.6; }
+.vp-doc th { background-color: var(--dd-table-head); color: var(--vp-c-text-1); font-weight: 700; }
+.vp-doc td { font-size: 15px; color: var(--vp-c-text-1); }
+
+/* 첫 화면 */
+.VPHero { word-break: keep-all; }
+.VPHome .VPHero .actions .VPButton { border-radius: 12px; }
+.VPHome .VPHomeFeatures { margin-top: 32px; padding-top: 48px; padding-bottom: 72px; background-color: var(--vp-c-bg-alt); }
+.VPHomeFeatures .item .VPFeature { border: none; border-radius: 16px; background-color: var(--vp-c-bg); box-shadow: var(--dd-soft-lift); transition: box-shadow 0.25s; }
+.VPHomeFeatures .item .VPFeature.link:hover { box-shadow: var(--dd-floating); }
+
+/* 원본 정보, Mermaid */
+.source-info { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--vp-c-divider); color: var(--vp-c-text-2); font-size: 13px; }
+.source-info p { flex-basis: 100%; }
+.source-info a { color: var(--vp-c-brand-1); font-weight: 600; }
+.mermaid-figure { margin: 24px 0; overflow: auto; padding: 16px; border: 1px solid var(--vp-c-divider); border-radius: 12px; }
+.mermaid-output svg { max-width: 100%; height: auto; }
+.mermaid-figure summary { cursor: pointer; font-size: 13px; color: var(--vp-c-text-2); }
+.mermaid-figure pre { white-space: pre-wrap; font-size: 12px; }

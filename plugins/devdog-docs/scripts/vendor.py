@@ -20,7 +20,8 @@ from check_docs import load_config  # noqa: E402
 
 LOCK = '.devdog-docs.json'
 # Seed files are project content after the first copy. They are created once and never upgraded.
-SEED = {'site/home.md'}
+SEED = {'site/home.md', 'site/.vitepress/theme/custom.css'}
+GITIGNORE = ['node_modules', '.site', 'test-results', 'playwright-report']
 
 
 def version():
@@ -46,16 +47,35 @@ def tool_files(config):
 
 
 def site_files(config, raw):
-    """Site tooling for the home repository. Workflows are generated from the config."""
+    """Site tooling for the home repository. Workflows and the home page are generated from the config."""
     import site_workflows  # noqa: E402  (same folder)
+    folder = site_workflows.site_dir(config, raw)
+    prefix = '' if folder == '.' else folder.strip('/') + '/'
+    home_values = site_workflows.home_page(config, raw)
     files = []
     base = TEMPLATES / 'site'
     for path in sorted(base.rglob('*')):
-        if path.is_file() and '__pycache__' not in path.parts and 'node_modules' not in path.parts:
-            files.append((path.relative_to(base).as_posix(), path.read_bytes()))
-    files.append(('.github/workflows/docs-pages.yml', site_workflows.pages(config, raw).encode('utf-8')))
-    return files
+        if not path.is_file() or '__pycache__' in path.parts or 'node_modules' in path.parts:
+            continue
+        rel = path.relative_to(base).as_posix()
+        data = path.read_bytes()
+        if rel == 'site/home.md':
+            data = render(data.decode('utf-8'), home_values).encode('utf-8')
+        files.append((prefix + rel, data, rel in SEED))
+    files.append(('.github/workflows/docs-pages.yml', site_workflows.pages(config, raw).encode('utf-8'), False))
+    return files, prefix
 
+
+def ensure_gitignore(root, prefix, dry_run):
+    """Build output must stay out of Git; DOCS_REQUIRE_CLEAN fails on an untracked node_modules."""
+    path = root / '.gitignore'
+    text = path.read_text(encoding='utf-8') if path.exists() else ''
+    existing = {line.strip() for line in text.splitlines()}
+    missing = [prefix + entry for entry in GITIGNORE if prefix + entry not in existing and '/' + prefix + entry not in existing]
+    if missing and not dry_run:
+        block = ('' if not text or text.endswith('\n') else '\n') + '# devdog-docs site\n' + '\n'.join(missing) + '\n'
+        path.write_text(text + block, encoding='utf-8')
+    return missing
 
 class Vendor(object):
     def __init__(self, root, force, dry_run):
@@ -110,9 +130,14 @@ def main(argv=None):
     raw = json.loads(config_path.read_text(encoding='utf-8'))
     config = load_config(root, config_path)
     vendor = Vendor(root, args.force, args.dry_run)
-    files = tool_files(config) if args.target == 'tools' else site_files(config, raw)
-    for rel, data in files:
-        vendor.put(rel, data, seed=rel in SEED)
+    if args.target == 'tools':
+        files = [(rel, data, False) for rel, data in tool_files(config)]
+        ignored = []
+    else:
+        files, prefix = site_files(config, raw)
+        ignored = ensure_gitignore(root, prefix, args.dry_run)
+    for rel, data, seed in files:
+        vendor.put(rel, data, seed=seed)
     vendor.save()
     extra = []
     if args.target == 'site' and config['layout'] == 'hub':
@@ -132,6 +157,8 @@ def main(argv=None):
         print('%-9s %s' % (state, rel))
     for state, path in extra:
         print('%-9s %s' % (state, path))
+    for entry in ignored:
+        print('%-9s .gitignore: %s' % ('ignored', entry))
     modified = [rel for state, rel in vendor.results if state == 'modified']
     if modified:
         print('Skipped %d files edited in this project. Review the differences, then rerun with --force to replace them.' % len(modified))
