@@ -12,6 +12,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.8', '3.14']
+        # Python 3.8 러너 고정 (Ubuntu): ubuntu-latest(26.04)에 3.8 빌드 없음
+        exclude:
+          - os: ubuntu-latest
+            python-version: '3.8'
+        include:
+          - os: ubuntu-22.04
+            python-version: '3.8'
 
     steps:
       - uses: actions/checkout@v4
