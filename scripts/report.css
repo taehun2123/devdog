@@ -1,0 +1,153 @@
+/* devdog 보고서 스타일. 기준: 한국은행 경제전망보고서 형식 (A4, 남색 강조, 바탕 본문·고딕 제목) */
+:root {
+  --navy: #1f3864;
+  --blue: #1f4e9a;
+  --light: #dce6f2;
+  --rule: #bfbfbf;
+  --divider: #d9d9d9;
+  --text: #111111;
+  --muted: #404040;
+  --sans: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR", sans-serif;
+  --serif: "Batang", "바탕", "AppleMyungjo", "Noto Serif CJK KR", "Noto Serif KR", serif;
+}
+
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm;
+  @bottom-right { content: counter(page); font: 9pt "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: #404040; }
+}
+@page :left {
+  @bottom-left { content: counter(page); font: 9pt "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: #404040; }
+  @bottom-right { content: none; }
+}
+@page cover { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+@page toc { @bottom-left { content: none; } @bottom-right { content: none; } }
+@page divider { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0;
+  background: #ffffff;
+  color: var(--text);
+  font: 10.5pt/1.75 var(--serif);
+  text-align: justify;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+a { color: inherit; text-decoration: none; }
+code { font: 0.9em ui-monospace, "SF Mono", Consolas, monospace; background: #f2f4f8; padding: 0 0.25em; }
+pre { font-size: 8.5pt; line-height: 1.5; background: #f2f4f8; padding: 2.5mm 3mm; white-space: pre-wrap; text-align: left; }
+pre code { background: none; padding: 0; }
+hr { border: 0; border-top: 0.6pt dashed var(--muted); margin: 5mm 0; }
+
+/* 표지 */
+.cover { page: cover; height: 296mm; position: relative; break-after: page; font-family: var(--sans); }
+.cover .frame {
+  position: absolute; inset: 24mm 22mm 26mm;
+  border: 0.6pt solid #222222;
+  background: linear-gradient(to bottom, #ffffff 0 58%, #e9eef6 58% 100%);
+}
+.cover .code { position: absolute; top: 9mm; right: 12mm; font-size: 10pt; letter-spacing: 0.3pt; }
+.cover .bar { position: absolute; top: 40mm; left: 14mm; width: 46mm; height: 3.2mm; background: var(--navy); }
+.cover h1 { position: absolute; top: 48mm; left: 14mm; right: 14mm; margin: 0; font: 700 34pt/1.25 var(--sans); color: var(--navy); letter-spacing: -0.5pt; text-align: left; }
+.cover .subtitle { position: absolute; top: 76mm; left: 14mm; font: 700 17pt var(--sans); color: var(--navy); }
+.cover .org { position: absolute; right: 14mm; bottom: 16mm; font: 700 19pt var(--sans); color: var(--navy); }
+.cover .band { position: absolute; left: -0.3pt; right: -0.3pt; bottom: -0.3pt; height: 5mm; background: var(--navy); }
+
+/* 차례 */
+.toc { page: toc; break-after: page; font-family: var(--sans); line-height: 1.5; }
+.toc h1 { margin: 0 0 7mm; font: 700 20pt var(--sans); color: var(--navy); letter-spacing: 5pt; }
+.toc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; padding: 1.1mm 0; }
+.toc-row .pg { min-width: 8mm; text-align: right; font-variant-numeric: tabular-nums; }
+.toc-front { font-weight: 700; color: var(--navy); font-size: 11pt; padding: 1.4mm 1mm; border-top: 1.2pt solid var(--navy); border-bottom: 0.5pt solid var(--navy); margin-bottom: 1mm; }
+.toc-part { margin-top: 6mm; font-weight: 700; color: var(--navy); font-size: 13pt; }
+.toc-chapter { margin-top: 2.5mm; padding-left: 5mm; font-weight: 700; color: var(--navy); font-size: 11pt; }
+.toc-section, .toc-box, .toc-note { padding-left: 11mm; font-size: 10pt; }
+.toc-tag { display: inline-block; padding: 0 1.2mm; margin-right: 2mm; border: 0.6pt solid #222222; font-size: 7.5pt; line-height: 1.35; }
+.toc-sep { margin: 6mm 0 2mm; border-top: 0.8pt dashed var(--muted); }
+
+/* 간지 */
+.divider {
+  page: divider; height: 296mm; position: relative; overflow: hidden;
+  break-before: page; break-after: page;
+  background: var(--divider); font-family: var(--sans);
+}
+.divider .part-title { position: absolute; top: 98mm; right: 28mm; left: 28mm; text-align: right; font: 300 27pt/1.3 var(--sans); color: #1a1a1a; letter-spacing: 1pt; }
+.divider .mini { position: absolute; top: 168mm; left: 30mm; right: 30mm; }
+.divider .mini-label { display: inline-block; margin-bottom: 4mm; padding: 1mm 7mm; background: var(--navy); color: #ffffff; font-weight: 700; letter-spacing: 5pt; }
+.divider .mini-row { display: flex; align-items: baseline; margin-top: 5mm; font-weight: 700; font-size: 12.5pt; }
+.divider .mini-row .dots { flex: 1; margin: 0 3mm; border-bottom: 1.6pt dotted #555555; transform: translateY(-1.2mm); }
+
+/* 제목 */
+.front, .chapter { break-before: page; }
+.front-title, h3.sec { position: relative; padding-top: 4mm; font-family: var(--sans); color: var(--navy); }
+.front-title::before, h3.sec::before { content: ""; position: absolute; top: 0; left: 0; width: 26mm; height: 2.4mm; background: var(--navy); }
+.front-title { margin: 0 0 5mm; font-size: 17pt; font-weight: 700; }
+.chapter-title { margin: 0 0 6mm; font: 700 17pt var(--sans); color: var(--navy); }
+h3.sec { margin: 7mm 0 3mm; font-size: 14pt; font-weight: 700; break-after: avoid; }
+h4 { margin: 4mm 0 2mm; font: 700 11pt var(--sans); color: var(--navy); break-after: avoid; }
+
+/* 문단 */
+p { margin: 0 0 2.6mm; orphans: 2; widows: 2; }
+p.key { margin-bottom: 3.6mm; }
+p.key .pnum { font: 700 10.5pt var(--sans); color: var(--blue); margin-right: 1mm; }
+p.key > strong:first-of-type { font-family: var(--sans); color: var(--blue); }
+p.conclusion { padding-left: 5mm; text-indent: -5mm; font-family: var(--sans); font-weight: 700; }
+p.note { padding-left: 4mm; text-indent: -4mm; font: 8.5pt/1.5 var(--sans); color: var(--muted); }
+small.aside { font-size: 0.68em; letter-spacing: -0.2pt; vertical-align: -0.1em; }
+sup.fn { font: 7pt var(--sans); vertical-align: super; line-height: 0; }
+
+/* 목록: □ ▪ - */
+ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+ul { list-style: none; }
+li { margin: 0 0 1.4mm; }
+ul > li { position: relative; }
+ul > li::before { content: "□"; position: absolute; left: -5mm; font-family: var(--sans); color: var(--navy); }
+ul ul > li::before { content: "▪"; }
+ul ul ul > li::before { content: "-"; }
+li > ul, li > ol { margin: 1.2mm 0 0; }
+
+/* 요약 상자 */
+.summary { margin: 0 0 5mm; padding: 3.5mm 4mm 1.5mm; border: 0.8pt solid #8eaadb; }
+.summary > ul > li { font: 700 11pt/1.6 var(--sans); color: var(--navy); }
+.summary li li { font: 400 10pt/1.65 var(--serif); color: var(--text); }
+.summary table { margin-top: 2mm; }
+
+/* Box·참고 */
+.box { margin: 5mm 0; padding: 0 4mm 2mm; border: 0.8pt solid #222222; break-inside: auto; }
+.box-head { margin: 0 -4mm 3mm; padding: 2mm 4mm; border-bottom: 0.8pt solid #222222; font: 700 12pt var(--sans); color: var(--navy); break-after: avoid; }
+.box-label { display: inline-block; margin-right: 3mm; padding: 0.4mm 2.6mm; background: var(--navy); color: #ffffff; font-size: 9.5pt; }
+.box p > strong:first-child { font-family: var(--sans); }
+
+/* 표 */
+.tbl { margin: 4mm 0; break-inside: avoid; }
+.tbl-cap { margin-bottom: 1.5mm; text-align: center; font: 700 9.5pt var(--sans); color: var(--navy); }
+table { width: 100%; border-collapse: collapse; margin: 1mm 0 1.5mm; font: 9pt/1.45 var(--sans); text-align: left; }
+thead th { padding: 1.3mm 1.6mm; background: var(--navy); color: #ffffff; font-weight: 700; text-align: center; border: 0.5pt solid #ffffff; }
+tbody td { padding: 1.1mm 1.6mm; border-bottom: 0.5pt solid var(--rule); }
+tbody tr:last-child td { border-bottom: 1pt solid var(--navy); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.hl, th.hl { background: var(--light); color: var(--text); }
+td.sub { padding-left: 5mm; }
+
+/* 그림 */
+.fig-row { display: flex; gap: 6mm; margin: 5mm 0; break-inside: avoid; }
+.fig { flex: 1; min-width: 0; break-inside: avoid; }
+.fig:only-child { flex: 0 1 60%; margin: 0 auto; }
+.fig-head { margin-bottom: 1.6mm; padding-bottom: 1mm; border-bottom: 1pt solid var(--navy); font: 700 9pt/1.4 var(--sans); color: var(--blue); text-align: left; }
+.fig-cap { margin-bottom: 1mm; text-align: center; font: 700 9pt/1.4 var(--sans); }
+.fig svg, .fig img { display: block; width: 100%; height: auto; }
+.fig-note { margin: 0.6mm 0 0; font: 7.5pt/1.4 var(--sans); color: var(--muted); text-align: left; }
+.chart { font-family: var(--sans); }
+.chart text { fill: #222222; }
+.chart .c-tick { font-size: 12px; }
+.chart .c-unit, .chart .c-legend { font-size: 12.5px; }
+.chart .c-shade { font-size: 11px; fill: var(--blue); font-weight: 700; }
+.chart .c-grid { stroke: #e3e3e3; stroke-width: 0.8; }
+.chart .c-axis, .chart .c-zero { stroke: #222222; stroke-width: 1; }
+
+/* 각주 */
+.footnotes { margin-top: 6mm; font: 8pt/1.45 var(--sans); color: var(--muted); }
+.footnotes::before { content: ""; display: block; width: 45mm; margin-bottom: 1.5mm; border-top: 0.6pt solid #222222; }
+.footnotes p { margin: 0 0 0.6mm; padding-left: 4mm; text-indent: -4mm; }

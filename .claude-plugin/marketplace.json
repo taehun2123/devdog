@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "devdog",
-      "description": "문서·커밋·코드 주석의 한국어 공학 문서체 규칙, 결정적 검사기, 일괄 전환 도구",
+      "description": "문서·커밋·코드 주석의 한국어 공학 문서체 규칙, 결정적 검사기, 일괄 전환 도구, PDF 보고서 생성기",
       "source": "./",
       "category": "productivity"
     },

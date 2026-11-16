@@ -21,7 +21,7 @@
 
 ## 1. 요약
 
-개발팀의 한국어 기술 문서, 커밋 메시지, 코드 주석을 공학 문서체로 작성·검사하는 Claude Code 플러그인입니다. 작성 규칙(스킬), 결정적 검사기(`kolint.py`), 자동 검사 훅, 기존 저장소 일괄 전환 도구로 구성됩니다.
+개발팀의 한국어 기술 문서, 커밋 메시지, 코드 주석을 공학 문서체로 작성·검사하는 Claude Code 플러그인입니다. 작성 규칙(스킬), 결정적 검사기(`kolint.py`), 자동 검사 훅, 기존 저장소 일괄 전환 도구, PDF 보고서 생성기로 구성됩니다.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/compare-dark.png">
@@ -62,10 +62,12 @@
 |---|---|---|
 | 작성 스킬 `devdog:writing` | `skills/writing/` | 한국어 문서·커밋·주석 작성 시 자동 적용 |
 | 전환 스킬 `devdog:migrate` | `skills/migrate/` | 저장소 전체 문체 정리 요청 시 적용 |
-| 검사기 | `scripts/kolint.py` | 규칙 17종 검사, CLI·훅 겸용 |
+| 보고서 스킬 `devdog:report` | `skills/report/` | PDF 보고서 작성 요청 시 적용 |
+| 검사기 | `scripts/kolint.py` | 규칙 22종 검사, CLI·훅 겸용 |
 | 파일 검사 훅 | `hooks/hooks.json` (PostToolUse) | Write·Edit 후 변경된 줄만 검사, 위반 위치를 Claude에 전달 |
 | 커밋·PR 검사 훅 | `hooks/hooks.json` (PreToolUse) | `git commit`, `gh pr create·edit`의 제목·본문 검사, 위반 시 실행 거부 |
 | 전환 도구 | `scripts/polite.py`, `comment_blocks.py`, `comment_apply.py` | 해라체 → 합쇼체 변환, 주석 블록 교체, 코드 무변경 검증 |
+| 보고서 생성기 | `scripts/report.py`, `scripts/report.css` | Markdown → HTML 변환, SVG 차트 생성, Chrome으로 PDF 출력 |
 | 출력 스타일 `devdog` | `output-styles/devdog.md` | 채팅 답변용, 사용자가 켤 때만 적용 |
 
 규칙을 모든 답변에 상시 주입하지 않습니다. 상시 주입하면 답변에서 정보가 누락되는 사례가 보고되어([korean-kit](https://github.com/IsthisLee/korean-kit)) 스킬과 파일 검사 훅으로 범위를 제한했습니다.
@@ -77,7 +79,7 @@ claude plugin marketplace add taehun2123/devdog
 claude plugin install devdog@devdog
 ```
 
-`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. CI에서 Ubuntu·macOS·Windows와 Python 3.8·3.14 조합을 검사합니다. Ubuntu의 Python 3.8 조합은 `ubuntu-22.04` 러너에서 실행합니다.
+`python3` 3.8 이상이 필요합니다. 스크립트는 표준 라이브러리만 사용합니다. CI에서 Ubuntu·macOS·Windows와 Python 3.8·3.14 조합을 검사합니다. Ubuntu의 Python 3.8 조합은 `ubuntu-22.04` 러너에서 실행합니다. PDF 보고서 생성에는 Chrome, Edge, Chromium 중 1개가 필요합니다.
 
 ### 문서 구조 플러그인
 
@@ -117,6 +119,21 @@ chmod +x .git/hooks/commit-msg
 ### 기존 저장소 전환
 
 "저장소 전체 문서 문체를 정리해 줘"처럼 요청하면 `devdog:migrate` 스킬의 절차(측정 → 변환 → 디프 검토 → 컴파일 검사 → 범위별 커밋)로 진행합니다.
+
+### PDF 보고서
+
+"분기 운영 보고서를 PDF로 만들어 줘"처럼 요청하면 `devdog:report` 스킬이 적용됩니다. 한국은행 경제전망보고서의 구성과 디자인을 기술 보고서에 적용합니다.
+
+- 구성: 표지, 차례, 핵심 전제, 요약 상자, 단원 간지, 장, 번호 문단(`1-1.`), 그림, 표, Box, 부록
+- 디자인: A4, 남색 강조 막대와 표 머리행, 파란 굵은 핵심 문장, 그림 2개 가로 배치, 바탕체 본문
+- 차트: JSON 데이터로 선·막대·누적 막대·전망 음영 SVG를 생성
+
+```bash
+python3 scripts/report.py report.md -o report.pdf   # PDF 생성
+python3 scripts/report.py report.md --html out.html # HTML만 생성
+```
+
+Chrome이 PDF를 2회 렌더링합니다. 첫 번째 PDF에서 제목별 쪽 번호를 읽어 차례에 기록합니다. Markdown 확장 문법은 [skills/report/references/syntax.md](skills/report/references/syntax.md), 예시는 [skills/report/examples/sample.md](skills/report/examples/sample.md)에 있습니다.
 
 ## 4. 검사 규칙
 

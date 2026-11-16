@@ -1,3 +1,7 @@
 {
-  "exclude": ["notes/**", "evals/results/**"]
+  "exclude": [
+    "notes/**",
+    "evals/results/**",
+    "skills/report/examples/**"
+  ]
 }
