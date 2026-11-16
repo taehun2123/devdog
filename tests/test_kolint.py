@@ -141,6 +141,27 @@ class Comments(unittest.TestCase):
         for ok in ('앱이 강제 종료됐습니다.\n', '사용자를 차단합니다.\n', '중복 요청을 차단합니다.\n'):
             self.assertNotIn('plain-term', rules(ok), ok)
 
+    def test_translationese(self):
+        for bad in ('값이 캐시에 보관되어집니다.\n', '목록은 이름순으로 보여집니다.\n',
+                    '서버가 요청을 처리하고 있습니다.\n', '로그가 없으면 배포가 실패한 것입니다.\n',
+                    '재시도가 필요하다는 것입니다.\n'):
+            self.assertIn('translationese', rules(bad), bad)
+        self.assertIn('translationese', rules('// 같은 방식을 사용하고 있다\n', 'a.ts'))
+        for ok in ('목록은 이름순으로 보입니다.\n', '판단으로 여겨집니다.\n', '가장 쉬운 방법은 재시작하는 것입니다.\n',
+                   '설정이 저장되어 있습니다.\n', '처리하고 있는지 확인하십시오.\n'):
+            self.assertNotIn('translationese', rules(ok), ok)
+
+    def test_cliche(self):
+        for bad in ('결론적으로 캐시를 사용합니다.\n', '획기적인 성능 개선입니다.\n', '도움이 되었으면 좋겠습니다.\n',
+                    '지금부터 구조를 살펴보겠습니다.\n', '설정 누락이 원인인 것 같습니다.\n', '원인은 설정 누락인 듯합니다.\n'):
+            self.assertIn('cliche', rules(bad), bad)
+        for ok in ('응답 시간이 압도적으로 길면 재시도합니다.\n', '요약하면 다음과 같습니다.\n',
+                   '원인은 설정 누락입니다.\n', '`결론적으로`는 삭제합니다.\n'):
+            self.assertNotIn('cliche', rules(ok), ok)
+
+    def test_slang(self):
+        self.assertIn('metaphor', rules('드디어 배포 성공 ㅋㅋ\n'))
+
     def test_comment_narrative(self):
         narrative = ('/*\n * 높이를 고정한다. 글자를 확대하면 잘린다.\n'
                      ' * 그래서 최소 높이를 사용한다.\n */\n')
