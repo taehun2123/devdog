@@ -81,6 +81,8 @@ RULES = {
     'metaphor': ('warn', '비유·대화체 어휘. 기술 용어로 수정'),
     'native-verb': ('warn', '순우리말 동작 동사. 한자어 기술 동사로 수정'),
     'plain-term': ('warn', '읽기 어려운 번역어. 쉬운 표현으로 수정'),
+    'translationese': ('warn', '번역투 문장 구조. 직설 표현으로 수정'),
+    'cliche': ('warn', 'AI 상투어·과장·추정 표현. 삭제하거나 사실·수치로 수정'),
     'comment-narrative': ('warn', '서술형 주석 블록. 명사형 제목과 "- 항목" 형식으로 분리'),
     'filler': ('error', '정보를 더하지 않는 부연 문장. 삭제'),
     'em-dash-aside': ('warn', '긴 대시 부가 설명. 다음 문장이나 별도 항목으로 분리'),
@@ -150,6 +152,7 @@ LEXICON = [
     (r'깨[진져졌]', '실패·손상'),
     (r'터[진져졌]|터지', '오류 발생'),
     (r'갈 곳|갈림', '이동 대상·분기'),
+    (r'[ㅋㅎㅠㅜ]{2,}', '구어 표현 삭제'),
 ]
 LEXICON = [(re.compile(p), hint) for p, hint in LEXICON]
 
@@ -169,6 +172,29 @@ PLAIN_TERM = [
     (r'전송(?:이|은|을)?\s?차단', '전송되지 않음·전송 실패'),
 ]
 PLAIN_TERM = [(re.compile(p), hint) for p, hint in PLAIN_TERM]
+
+# 문장 끝 경계: 마침표·느낌표 뒤 공백·줄 끝·닫는 괄호
+SENT_END = r'(?=[.!]?(?:\s|$|\)))'
+# 번역투 문장 구조. 정리 전후 문장 8,022쌍에서 수정 후 문장에 드문 형태만 검출한다.
+# "~에 대해"·"~에 있어"·"~에서의"·"가지다"는 수정 후 문장에도 같은 빈도로 남아 제외
+TRANSLATIONESE = [
+    (r'(?:되어|보여|쓰여|잊혀|읽혀|짜여|놓여|닫혀|열려|믿겨)(?:지|진|졌|집|져)', '단일 피동·능동("보여집니다" → "보입니다")'),
+    (r'[가-힣]고 있(?:다|습니다)' + SENT_END, '단순 시제("사용하고 있습니다" → "사용합니다")'),
+    (r'(?:[인한은]|다는) 것(?:이다|입니다)' + SENT_END, '평서문("실패한 것입니다" → "실패했습니다")'),
+]
+TRANSLATIONESE = [(re.compile(p), hint) for p, hint in TRANSLATIONESE]
+
+# AI 초안에 반복되는 상투어. 기술 문서에서 원래 뜻으로 쓰이는 '압도적'·'요약하면'은 제외
+CLICHE = [
+    (r'결론적으로|시사하는 바|주목할 만하|본질적으로|핵심적으로', '삭제'),
+    (r'획기적|혁신적|자리매김|발돋움|새로운 지평|귀추가 주목|무한한 가능성|다채로운', '수치·사실로 수정'),
+    (r'도움이 되(?:었|셨)?(?:으면|길)|궁금한 (?:점|사항)이 있으|좋은 질문', '챗봇 응대 문장 삭제'),
+    (r'살펴보겠습니다|알아보겠습니다|살펴보자|알아보자', '예고 문장 삭제'),
+    (r'(?:것|듯) 같(?:다|습니다)|듯(?:하다|합니다)|것으로 보(?:인다|입니다)', '확정 표현으로 수정하거나 근거와 함께 추정으로 명시'),
+]
+CLICHE = [(re.compile(p), hint) for p, hint in CLICHE]
+WORD_RULES = (('metaphor', LEXICON), ('native-verb', NATIVE_VERB), ('plain-term', PLAIN_TERM),
+              ('translationese', TRANSLATIONESE), ('cliche', CLICHE))
 # 주석 항목 줄: 목록·번호·인용·제목
 COMMENT_ITEM = re.compile(r'^\s*(?:[-*•>#]|\d+[.)])\s')
 NARRATIVE_MIN_SENTENCES = 3
@@ -239,21 +265,12 @@ class Finding:
 
 def check_prose(text, spans, register, add, check_register=True):
     """문장 단위 규칙(말투·비유·부연·긴 대시). add(rule, detail)로 결과를 전달한다."""
-    for pat, hint in LEXICON:
-        for m in pat.finditer(text):
-            if free(m, spans):
-                add('metaphor', f'"{m.group(0).strip()}" → {hint}')
-                break
-    for pat, hint in NATIVE_VERB:
-        for m in pat.finditer(text):
-            if free(m, spans):
-                add('native-verb', f'"{m.group(0)}" → {hint}')
-                break
-    for pat, hint in PLAIN_TERM:
-        for m in pat.finditer(text):
-            if free(m, spans):
-                add('plain-term', f'"{m.group(0)}" → {hint}')
-                break
+    for rule, table in WORD_RULES:
+        for pat, hint in table:
+            for m in pat.finditer(text):
+                if free(m, spans):
+                    add(rule, f'"{m.group(0).strip()}" → {hint}')
+                    break
     for m in FILLER.finditer(text):
         if free(m, spans):
             add('filler', f'"{m.group(0)}"')
