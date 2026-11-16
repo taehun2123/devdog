@@ -133,7 +133,7 @@ python3 scripts/report.py report.md -o report.pdf   # PDF 생성
 python3 scripts/report.py report.md --html out.html # HTML만 생성
 ```
 
-Chrome이 PDF를 2회 렌더링합니다. 첫 번째 PDF에서 제목별 쪽 번호를 읽어 차례에 기록합니다. Markdown 확장 문법은 [skills/report/references/syntax.md](skills/report/references/syntax.md), 예시는 [skills/report/examples/sample.md](skills/report/examples/sample.md)에 있습니다.
+Chrome이 PDF를 2회 렌더링합니다. 첫 번째 PDF에서 제목별 쪽 번호를 읽어 차례에 기록합니다. 20쪽 이하 제출 문서는 앞부분에 `layout: compact`를 설정하면 단원 간지 쪽과 장별 쪽 나눔을 생략합니다. Markdown 확장 문법은 [skills/report/references/syntax.md](skills/report/references/syntax.md), 예시는 [skills/report/examples/sample.md](skills/report/examples/sample.md)에 있습니다.
 
 ## 4. 검사 규칙
 

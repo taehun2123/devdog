@@ -26,6 +26,12 @@ ROMAN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ']
 PALETTE = ['#1f3864', '#c00000', '#8eaadb', '#00a07a', '#ed7d31', '#7f7f7f']
 
 
+# 앞부분 layout 값
+# - report: 단원 간지 쪽, 장마다 새 쪽 (경제전망보고서 기본)
+# - compact: 간지·장별 쪽 나눔 생략. 20쪽 이하 제출 문서의 빈 쪽 축소
+LAYOUTS = ('report', 'compact')
+
+
 class ReportError(ValueError):
     pass
 
@@ -323,6 +329,9 @@ class Report:
 
     def __init__(self, text, base_dir='.'):
         self.meta, body = front_matter(text)
+        if self.meta.get('layout', 'report') not in LAYOUTS:
+            raise ReportError(f'layout 값 오류: {self.meta["layout"]} (허용: {", ".join(LAYOUTS)})')
+        self.compact = self.meta.get('layout') == 'compact'
         self.base = base_dir
         self.fn_defs = {m.group(1): m.group(2) for m in FOOTDEF.finditer(body)}
         body = FOOTDEF.sub('', body)
@@ -563,7 +572,7 @@ class Report:
         rows = ''.join(f'<div class="mini-row"><span>{html.escape(lab)} {inline(t)}</span><span class="dots"></span>'
                        f'<span class="pg">{pages.get(cid, "")}</span></div>'
                        for _, cid, lab, t in self.children.get(pid, []))
-        mini = f'<div class="mini"><div class="mini-label">목 차</div>{rows}</div>' if rows else ''
+        mini = f'<div class="mini"><div class="mini-label">목 차</div>{rows}</div>' if rows and not self.compact else ''
         return (f'<section class="divider" id="{pid}"><div class="part-title">{html.escape(label)} {inline(title)}</div>'
                 f'{mini}</section>')
 
@@ -585,7 +594,7 @@ class Report:
         toc = self.toc_html(pages) if self.meta.get('toc', 'true') != 'false' else ''
         return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><base href="{base}">'
                 f'<title>{html.escape(self.meta.get("title", "보고서"))}</title><style>{css}</style></head>'
-                f'<body>{self.cover_html()}{toc}{body}</body></html>')
+                f'<body{" class=\"compact\"" if self.compact else ""}>{self.cover_html()}{toc}{body}</body></html>')
 
 
 def split_notes(lines):

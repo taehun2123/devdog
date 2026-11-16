@@ -132,6 +132,16 @@ class Render(unittest.TestCase):
         self.assertIn('1. 지표 점검</span><span class="dots"></span><span class="pg">5</span>', self.html)
         self.assertIn('<div class="toc-sep"></div>', self.html)
 
+    def test_compact_layout(self):
+        doc = DOC.replace('subtitle: "2026년 3분기"', 'subtitle: "2026년 3분기"\nlayout: compact')
+        html = report.Report(doc).html()
+        self.assertIn('<body class="compact">', html)
+        self.assertIn('class="divider"', html)
+        self.assertNotIn('class="mini"', html)
+        self.assertNotIn('<body class="compact">', report.Report(DOC).html())
+        with self.assertRaises(report.ReportError):
+            report.Report(DOC.replace('subtitle: "2026년 3분기"', 'layout: slim'))
+
     def test_missing_footnote(self):
         with self.assertRaises(report.ReportError):
             report.Report('본문[^x].\n')
