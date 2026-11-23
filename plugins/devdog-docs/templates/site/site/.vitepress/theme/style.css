@@ -2,7 +2,7 @@
  * 위키 기본 테마
  * - 주 색상: docs.config.json site.primaryColor → --dd-primary (config.mts가 head에 설정)
  * - 다크 모드: 주 색상을 흰색과 섞어 바탕 대비 확보
- * - 수정 위치: 이 파일은 devdog-docs 업그레이드 대상. 프로젝트 색·글꼴은 custom.css에 작성
+ * - 수정 위치: 이 파일은 devdog-docs 업그레이드 대상. 프로젝트 색, 글꼴은 custom.css에 작성
  */
 :root {
   --dd-primary: #3451b2;

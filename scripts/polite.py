@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """해라체 문장 끝(~한다/~이다/~있다)을 합쇼체(~합니다/~입니다/~있습니다)로 변환한다.
 
-표·제목·코드 블록·인라인 코드·따옴표·링크 안은 변환하지 않는다. 변환 결과는 디프로 사람이 검토한다.
+표, 제목, 코드 블록, 인라인 코드, 따옴표, 링크 안은 변환하지 않는다. 변환 결과는 디프로 사람이 검토한다.
 사용법: polite.py [--dry-run] [--report] FILE...
   --dry-run  파일을 바꾸지 않고 디프만 출력
   --report   규칙적이지 않은 변환 목록을 출력 (검토 대상)
@@ -37,8 +37,8 @@ def polite(word, prev):
     for suf, rep in ADJ_SUFFIX.items():
         if word.endswith(suf):
             return word[:-len(suf)] + rep
-    # 르·으 탈락과 ㅡ 불규칙 활용은 표면형만으로 안전하게 변환할 수 없다.
-    # 잘못된 문장을 만들기보다 원문을 유지해 후속 lint·사람 검토 대상으로 남긴다.
+    # 르, 으 탈락과 ㅡ 불규칙 활용은 표면형만으로 안전하게 변환할 수 없다.
+    # 잘못된 문장을 만들기보다 원문을 유지해 후속 lint, 사람 검토 대상으로 남긴다.
     if word.endswith(UNCERTAIN_SUFFIX):
         return word
     if word.endswith(('니다', '보다', '마다', '바다')):

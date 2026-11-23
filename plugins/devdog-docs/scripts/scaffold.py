@@ -105,13 +105,13 @@ def home_documents(config, writer, project):
     writer.write_new(root / ai / 'README.md', read_template('docs/ai/README.md'))
     sources = {'schema_version': 1, 'sources': [{
         'id': 'docs-process', 'repository': config['home'], 'path': human + '/how-to/write-docs.md',
-        'purpose': '문서 작성·검증', 'kind': 'policy'}]}
+        'purpose': '문서 작성, 검증', 'kind': 'policy'}]}
     writer.write_new(root / ai / 'sources.json', json.dumps(sources, ensure_ascii=False, indent=2) + '\n')
     if config['layout'] == 'hub':
         tree = [home['local'] + '/', '├── README.md          전체 문서 안내',
                 '├── %-18s 사람이 읽는 설명과 공통 규칙' % (human + '/'),
                 '├── %-18s AI 작업 안내와 참고할 파일 목록' % (ai + '/'),
-                '└── docs.config.json   저장소·사이트 설정']
+                '└── docs.config.json   저장소, 사이트 설정']
         for repo in others:
             tree.append('%-22s AGENTS.md + %s + %s' % (repo['local'] + '/', repo['human'], repo['ai']))
         writer.write_new(root / 'README.md', render(read_template('docs/hub-README.md'),
@@ -197,7 +197,7 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    # Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 경로·문구 출력 시 UnicodeEncodeError 방지
+    # Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 경로, 문구 출력 시 UnicodeEncodeError 방지
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.exit(main())

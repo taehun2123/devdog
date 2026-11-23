@@ -1,11 +1,11 @@
 ---
 name: migrate
-description: 기존 Markdown 문서를 사람용·AI용과 문서 종류(시작하기·작업 방법·구조 설명·참조·과거 자료)로 분류해 새 폴더 구조로 옮기고 링크를 고친다. "기존 문서 정리", "docs 폴더 재구성", "문서 분류해서 옮겨줘", "문서 이전" 요청에 사용한다. init 스킬로 docs.config.json을 만든 뒤 실행한다.
+description: 기존 Markdown 문서를 사람용과 AI용, 문서 종류(시작하기, 작업 방법, 구조 설명, 참조, 과거 자료)로 분류해 새 폴더 구조로 옮기고 링크를 고친다. "기존 문서 정리", "docs 폴더 재구성", "문서 분류해서 옮겨줘", "문서 이전" 요청에 사용한다. init 스킬로 docs.config.json을 만든 뒤 실행한다.
 ---
 
 # 기존 문서 이전
 
-기존 Markdown 파일을 분류해 `docs.config.json`의 사람용·AI용 폴더로 옮깁니다. 이동은 `git mv`로 수행하고 모든 문서의 상대 링크와 같은 저장소 GitHub 링크를 새 경로로 고칩니다. 파일은 삭제하지 않습니다. 스크립트 경로는 이 스킬 폴더 기준 `../../scripts/`입니다.
+기존 Markdown 파일을 분류해 `docs.config.json`의 사람용, AI용 폴더로 옮깁니다. 이동은 `git mv`로 수행하고 모든 문서의 상대 링크와 같은 저장소 GitHub 링크를 새 경로로 고칩니다. 파일은 삭제하지 않습니다. 스크립트 경로는 이 스킬 폴더 기준 `../../scripts/`입니다.
 
 ## 전제 조건
 
@@ -22,7 +22,7 @@ python3 <플러그인>/scripts/inventory.py --root <설정 저장소> [--reposit
 결과는 대상 저장소의 `docs-migration-plan.json`입니다. 허브는 저장소마다 `--repository`로 실행하십시오.
 
 - `moves`: 옮길 파일. `from`, `to`, `audience`, `kind`, `title`, `reason`
-- `keep`: 제자리에 둘 파일. 저장소 루트 README·AGENTS·CLAUDE·LICENSE, 코드 폴더 옆 README, `.github/` 문서
+- `keep`: 제자리에 둘 파일. 저장소 루트 README, AGENTS, CLAUDE, LICENSE, 코드 폴더 옆 README, `.github/` 문서
 
 ## 2. 초안 보정
 
@@ -30,12 +30,12 @@ python3 <플러그인>/scripts/inventory.py --root <설정 저장소> [--reposit
 
 | 내용 | 분류 |
 |---|---|
-| 준비물·실행 순서를 따라 하는 입문 안내 | `tutorials` |
-| 이미 아는 작업의 절차·런북 | `how-to` |
-| 구조·설계 이유·배경 | `explanation` |
-| API·필드·명령·규칙 표 | `reference` |
+| 준비물, 실행 순서를 따라 하는 입문 안내 | `tutorials` |
+| 이미 아는 작업의 절차, 런북 | `how-to` |
+| 구조, 설계 이유, 배경 | `explanation` |
+| API, 필드, 명령, 규칙 표 | `reference` |
 | 날짜가 있는 보고서, 폐기한 규칙, 초안 | `archive` |
-| AI 지시문·프롬프트·작업 규칙 | AI용 폴더 |
+| AI 지시문, 프롬프트, 작업 규칙 | AI용 폴더 |
 
 - 한 파일에 여러 주제가 섞여 있으면 이동만 하고, 분리는 별도 작업으로 제안하십시오.
 - 같은 내용의 문서가 여러 개이면 원본 1개를 정하고 나머지는 `archive`로 옮기도록 제안하십시오.

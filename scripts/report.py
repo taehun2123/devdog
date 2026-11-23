@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Markdown 보고서를 PDF로 변환한다. 표지·차례·간지·번호 문단·Box·그림·표 형식을 적용한다.
+"""Markdown 보고서를 PDF로 변환한다. 표지, 차례, 간지, 번호 문단, Box, 그림, 표 형식을 적용한다.
 
 사용법:
-  python3 report.py report.md -o report.pdf          # PDF 생성 (Chrome·Edge·Chromium 필요)
+  python3 report.py report.md -o report.pdf          # PDF 생성 (Chrome, Edge, Chromium 필요)
   python3 report.py report.md --html report.html     # HTML만 생성
   python3 report.py report.md -o report.pdf --chrome /path/to/chrome
 
@@ -28,7 +28,7 @@ PALETTE = ['#1f3864', '#c00000', '#8eaadb', '#00a07a', '#ed7d31', '#7f7f7f']
 
 # 앞부분 layout 값
 # - report: 단원 간지 쪽, 장마다 새 쪽 (경제전망보고서 기본)
-# - compact: 간지·장별 쪽 나눔 생략. 20쪽 이하 제출 문서의 빈 쪽 축소
+# - compact: 간지, 장별 쪽 나눔 생략. 20쪽 이하 제출 문서의 빈 쪽 축소
 LAYOUTS = ('report', 'compact')
 
 
@@ -160,7 +160,7 @@ def attr(s):
 
 
 def inline(s, footnote=None):
-    """굵게·기울임·코드·링크·^위첨자^·{{작은 글씨}}·[^각주] 변환."""
+    """굵게, 기울임, 코드, 링크, ^위첨자^, {{작은 글씨}}, [^각주] 변환."""
     codes = []
 
     def keep(m):
@@ -209,7 +209,7 @@ def fmt_num(v):
 
 
 def chart_svg(spec):
-    """JSON 차트 정의를 SVG 문자열로 변환한다. 선·막대(묶음·누적)·전망 음영을 지원한다."""
+    """JSON 차트 정의를 SVG 문자열로 변환한다. 선, 막대(묶음, 누적), 전망 음영을 지원한다."""
     if not isinstance(spec, dict) or not isinstance(spec.get('x'), list) or not spec.get('series'):
         raise ReportError('차트 정의에 x 목록과 series 목록 필요')
     xs, series = [str(v) for v in spec['x']], spec['series']
@@ -325,7 +325,7 @@ def chart_svg(spec):
 # ---------------------------------------------------------------- 렌더링
 
 class Report:
-    """블록을 HTML 조각으로 변환하고 차례·간지 항목을 수집한다."""
+    """블록을 HTML 조각으로 변환하고 차례, 간지 항목을 수집한다."""
 
     def __init__(self, text, base_dir='.'):
         self.meta, body = front_matter(text)
@@ -598,7 +598,7 @@ class Report:
 
 
 def split_notes(lines):
-    """블록 본문과 '주:'·'자료:' 줄을 분리한다."""
+    """블록 본문과 '주:', '자료:' 줄을 분리한다."""
     body, notes = [], []
     for x in lines:
         if x.strip().startswith(('주:', '자료:')):
@@ -676,7 +676,7 @@ def build(md_path, pdf_path=None, html_path=None, chrome=None):
     if pdf_path:
         exe = find_chrome(chrome)
         if not exe:
-            raise ReportError('Chrome·Edge·Chromium을 찾지 못함. --chrome 또는 CHROME_PATH로 실행 파일 경로를 지정하십시오.')
+            raise ReportError('Chrome, Edge, Chromium을 찾지 못함. --chrome 또는 CHROME_PATH로 실행 파일 경로를 지정하십시오.')
         tmp = tempfile.mkdtemp(prefix='devdog-report-')
         try:
             first_html, first_pdf = os.path.join(tmp, 'pass1.html'), os.path.join(tmp, 'pass1.pdf')
@@ -702,7 +702,7 @@ def main(argv=None):
     ap.add_argument('source')
     ap.add_argument('-o', '--output', help='PDF 경로')
     ap.add_argument('--html', help='HTML 경로')
-    ap.add_argument('--chrome', help='Chrome·Edge·Chromium 실행 파일 경로')
+    ap.add_argument('--chrome', help='Chrome, Edge, Chromium 실행 파일 경로')
     args = ap.parse_args(argv)
     if not args.output and not args.html:
         args.output = os.path.splitext(args.source)[0] + '.pdf'

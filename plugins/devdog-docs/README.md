@@ -1,23 +1,23 @@
 # DevDog Docs
 
-프로젝트 문서를 사람용·AI용으로 나누는 폴더 구조, 설정 기반 문서 검사기, 여러 저장소 문서를 모으는 위키 사이트를 설치하는 Claude Code 플러그인입니다. 넉터 프로젝트에서 운영하는 문서 체계를 다른 프로젝트에 적용하기 위해 일반화했습니다.
+프로젝트 문서를 사람용과 AI용으로 나누는 폴더 구조, 설정 기반 문서 검사기, 여러 저장소 문서를 모으는 위키 사이트를 설치하는 Claude Code 플러그인입니다. 넉터 프로젝트에서 운영하는 문서 체계를 다른 프로젝트에 적용하기 위해 일반화했습니다.
 
 ## 구성 요소
 
 | 구성 요소 | 경로 | 동작 |
 |---|---|---|
-| 설치 스킬 `devdog-docs:init` | `skills/init/` | `docs.config.json` 작성, 폴더·README·`AGENTS.md` 규칙 섹션 생성, 검사기 설치 |
+| 설치 스킬 `devdog-docs:init` | `skills/init/` | `docs.config.json` 작성, 폴더와 README 생성, `AGENTS.md` 규칙 섹션 생성, 검사기 설치 |
 | 이전 스킬 `devdog-docs:migrate` | `skills/migrate/` | 기존 Markdown 분류, `git mv` 이동, 링크 재작성 |
 | 위키 스킬 `devdog-docs:site` | `skills/site/` | VitePress 사이트 도구와 GitHub Pages 워크플로 설치 |
-| 확인 스킬 `devdog-docs:check` | `skills/check/` | 기능 변경 후 문서 갱신·검사 완료 확인 |
-| 생성기 | `scripts/scaffold.py` | 설정 기반 폴더·문서 생성. 여러 번 실행해도 결과 동일 |
+| 확인 스킬 `devdog-docs:check` | `skills/check/` | 기능 변경 후 문서 갱신, 검사 완료 확인 |
+| 생성기 | `scripts/scaffold.py` | 설정 기반 폴더, 문서 생성. 여러 번 실행해도 결과 동일 |
 | 이전 도구 | `scripts/inventory.py`, `scripts/apply_moves.py` | 분류 계획 초안, 계획 적용 |
-| 복사 도구 | `scripts/vendor.py` | 검사기·사이트 도구 복사, 해시 잠금, 업그레이드 |
+| 복사 도구 | `scripts/vendor.py` | 검사기와 사이트 도구 복사, 해시 잠금, 업그레이드 |
 | 템플릿 | `templates/` | 문서, `AGENTS.md` 섹션, 검사기, 사이트, 워크플로 |
 
 ## 문서 구조
 
-독자와 읽는 목적으로 문서를 나눕니다. 사람용 문서는 시작하기·작업 방법·구조 설명·규칙·값 참조 4종과 과거 자료로 구분합니다.
+독자와 읽는 목적으로 문서를 나눕니다. 사람용 문서는 시작하기, 작업 방법, 구조 설명, 규칙과 값 참조 4종과 과거 자료로 구분합니다.
 
 | 구조 | 사람용 문서 | AI용 문서 | 설정 파일 위치 |
 |---|---|---|---|
@@ -43,12 +43,12 @@ docs/ai/
 
 | 항목 | 내용 |
 |---|---|
-| 수집 | 저장소별 사람용 문서 폴더의 Markdown·이미지·PDF. AI용 문서와 `AGENTS.md`·`CLAUDE.md` 제외 |
+| 수집 | 저장소별 사람용 문서 폴더의 Markdown, 이미지, PDF. AI용 문서와 `AGENTS.md`, `CLAUDE.md` 제외 |
 | 주소 | `/<mount>/<경로>.html`. `README.md`는 `index.html` |
 | 링크 | 수집한 문서는 사이트 주소, 그 외 파일은 GitHub 원본 커밋 주소 |
 | 검색 | 로컬 검색. 한국어는 2글자 단위 토큰 추가. `archive/`는 검색 제외 |
 | 문서 정보 | 원본 링크, Git 기준 마지막 수정일, 커밋하지 않은 수정 표시 |
-| 배포 | GitHub Actions 빌드·검사 후 GitHub Pages 게시 |
+| 배포 | GitHub Actions 빌드, 검사 후 GitHub Pages 게시 |
 | 허브 연동 | 코드 저장소 문서 변경 시 `repository_dispatch`로 재빌드. 미설정 시 매시 17분 예약 빌드 |
 
 빌드 단계는 내부 링크, 제목 이동, 자산, 페이지 도달 여부, GitHub Pages `base` 경로 포함 여부를 검사합니다.
@@ -104,5 +104,5 @@ claude plugin validate plugins/devdog-docs
 
 - 위키 배포는 GitHub Pages만 워크플로로 제공합니다. 다른 호스팅은 `<site.dir>/.site/dist` 정적 파일을 직접 배포하십시오.
 - 문서 사이트 접근 제어는 제공하지 않습니다. 비공개 저장소의 Pages 공개 범위는 GitHub 요금제에 따릅니다.
-- 분류 초안은 파일 이름 규칙으로 만든 추정입니다. migrate 스킬이 제목·본문을 읽어 보정하고 사용자 승인을 받습니다.
+- 분류 초안은 파일 이름 규칙으로 만든 추정입니다. migrate 스킬이 제목, 본문을 읽어 보정하고 사용자 승인을 받습니다.
 - 원본 Markdown의 frontmatter는 지원하지 않습니다. 수집 단계에서 오류로 중단합니다.

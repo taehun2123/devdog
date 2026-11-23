@@ -10,7 +10,7 @@ export const labels = {
     lang: 'ko-KR', docs: '문서', allDocs: '전체 문서', writeDocs: '작성 안내', archive: '과거 자료', home: '안내',
     outline: '이 문서의 목차', prev: '이전 문서', next: '다음 문서', menu: '문서 메뉴', top: '맨 위로', theme: '화면 테마',
     search: { button: '문서 검색', details: '본문 미리보기', reset: '검색 지우기', back: '뒤로', empty: '검색 결과가 없습니다.', select: '선택', navigate: '이동', close: '닫기' },
-    folders: { tutorials: '시작하기', 'how-to': '작업 방법', explanation: '구조 설명', reference: '규칙·값 참조', archive: '과거 자료', troubleshooting: '장애 기록' },
+    folders: { tutorials: '시작하기', 'how-to': '작업 방법', explanation: '구조 설명', reference: '규칙과 값 참조', archive: '과거 자료', troubleshooting: '장애 기록' },
     sourceInfo: { label: '원본 문서 정보', archive: '과거 기록입니다. 현재 작업에는 최신 안내를 먼저 확인하십시오.', link: '원본 문서 보기', modified: '로컬 수정 내용입니다.', updated: '마지막 수정:' },
     mermaid: { label: '구조 다이어그램', source: '다이어그램 원문', error: '다이어그램을 표시하지 못했습니다. 아래 원문을 확인하십시오.' }
   },
@@ -35,7 +35,7 @@ export function findConfig() {
 
 /**
  * docs.config.json 읽기
- * - 기본값: check_docs.py의 load_config와 동일(허브 저장소 human·ai, 그 외 docs/human·docs/ai)
+ * - 기본값: check_docs.py의 load_config와 동일(허브 저장소는 human과 ai, 그 외는 docs/human과 docs/ai)
  * - 저장소 경로: DOCS_<ID>_ROOT 우선. 없으면 허브 저장소는 설정 파일 폴더, 형제 저장소는 DOCS_WORKSPACE 기준
  */
 export function loadConfig() {

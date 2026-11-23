@@ -51,10 +51,10 @@ devdog-docs 도구가 읽는 설정 파일입니다. 위치는 단일 저장소 
 | 키 | 기본값 | 설명 |
 |---|---|---|
 | `site.title` | `project.name` + " 문서" | 사이트 제목 |
-| `site.description` | 빈 값 | 검색 엔진·첫 화면 설명 |
+| `site.description` | 빈 값 | 검색 엔진, 첫 화면 설명 |
 | `site.base` | `/` | GitHub Pages 프로젝트 사이트는 `/<저장소 이름>/` |
 | `site.nav` | 전체 문서, 작성 안내 | 상단 메뉴 `{ "text", "link" }` 목록 |
-| `site.primaryColor` | `#3451B2` | 링크·강조 색 |
+| `site.primaryColor` | `#3451B2` | 링크, 강조 색 |
 | `site.searchQuery` | `문서` | 브라우저 테스트에서 검색할 단어 |
 
 ## 환경변수
