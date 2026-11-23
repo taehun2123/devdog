@@ -592,9 +592,11 @@ class Report:
             css = f.read()
         base = pathlib.Path(os.path.abspath(self.base)).as_uri() + '/'
         toc = self.toc_html(pages) if self.meta.get('toc', 'true') != 'false' else ''
+        # Python 3.11 이하는 f-string 식 안 백슬래시를 허용하지 않아 밖에서 생성
+        body_class = ' class="compact"' if self.compact else ''
         return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><base href="{base}">'
                 f'<title>{html.escape(self.meta.get("title", "보고서"))}</title><style>{css}</style></head>'
-                f'<body{" class=\"compact\"" if self.compact else ""}>{self.cover_html()}{toc}{body}</body></html>')
+                f'<body{body_class}>{self.cover_html()}{toc}{body}</body></html>')
 
 
 def split_notes(lines):
