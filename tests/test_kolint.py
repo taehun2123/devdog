@@ -159,6 +159,18 @@ class Comments(unittest.TestCase):
                    '원인은 설정 누락입니다.\n', '`결론적으로`는 삭제합니다.\n'):
             self.assertNotIn('cliche', rules(ok), ok)
 
+    def test_middle_dot(self):
+        for bad in ('문서·커밋·주석을 검사합니다.\n', '조회ㆍ작성 권한입니다.\n', '| 항목 | 값 |\n|---|---|\n| 권한·집계 | 서버 값 |\n'):
+            self.assertIn('middle-dot', rules(bad), bad)
+        for ok in ('문서, 커밋, 주석을 검사합니다.\n', '`02 · IDEA` 라벨은 삭제합니다.\n', '"A·B"는 원문입니다.\n'):
+            self.assertNotIn('middle-dot', rules(ok), ok)
+
+    def test_bold_label(self):
+        self.assertIn('bold-label', rules('- **개발 방식: 구현은 보조합니다.**\n'))
+        for ok in ('- **개발 방식**: 구현은 보조합니다.\n', '**주의:** 운영 DB입니다.\n',
+                   '**Expo Go로는 동작하지 않습니다.** 개발 빌드가 필요합니다.\n'):
+            self.assertNotIn('bold-label', rules(ok), ok)
+
     def test_slang(self):
         self.assertIn('metaphor', rules('드디어 배포 성공 ㅋㅋ\n'))
 
@@ -193,6 +205,7 @@ class Commit(unittest.TestCase):
         self.assertIn('commit-body-separator', self.lint('fix: 오류 수정\n- 원인 제거'))
         self.assertEqual(self.lint('ci: 빌더 상태 유지\n\n- 캐시 업로드 325초 소요\n- 앱 재빌드 필요'), [])
         self.assertIn('commit-body-style', self.lint('fix: 오류 수정\n\n- 재시작하면 돼요'))
+        self.assertIn('middle-dot', self.lint('feat(match): 카드·상세 명칭 통일'))
 
     def test_scissors(self):
         msg = ('fix: 오류 수정\n\n- 원인 제거\n# ------------------------ >8 ------------------------\n'
@@ -249,6 +262,7 @@ class PullRequest(unittest.TestCase):
                          ['pr-signature'])
         self.assertEqual(rules('feat: 캐시 추가 ✨', '- 완료 ✅'), ['pr-emoji'])
         self.assertIn('heading-sentence', rules('feat: 캐시 추가', '## 무엇을 바꿨는가\n- 캐시 추가'))
+        self.assertEqual(rules('feat: 카드·상세 명칭 통일', None), ['middle-dot'])
 
     def test_hook(self):
         deny = kolint.hook_pre({'tool_input': {'command': 'gh pr create -t "fix: 오류를 고쳤다" -b "- 원인 제거"'}})

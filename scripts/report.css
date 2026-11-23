@@ -1,4 +1,4 @@
-/* devdog 보고서 스타일. 기준: 한국은행 경제전망보고서 형식 (A4, 남색 강조, 바탕 본문·고딕 제목) */
+/* devdog 보고서 스타일. 기준: 한국은행 경제전망보고서 형식 (A4, 남색 강조, 바탕체 본문, 고딕체 제목) */
 :root {
   --navy: #1f3864;
   --blue: #1f4e9a;
@@ -119,7 +119,7 @@ li > ul, li > ol { margin: 1.2mm 0 0; }
 .summary li li { font: 400 10pt/1.65 var(--serif); color: var(--text); }
 .summary table { margin-top: 2mm; }
 
-/* Box·참고 */
+/* Box, 참고 */
 .box { margin: 5mm 0; padding: 0 4mm 2mm; border: 0.8pt solid #222222; break-inside: auto; }
 .box-head { margin: 0 -4mm 3mm; padding: 2mm 4mm; border-bottom: 0.8pt solid #222222; font: 700 12pt var(--sans); color: var(--navy); break-after: avoid; }
 .box-label { display: inline-block; margin-right: 3mm; padding: 0.4mm 2.6mm; background: var(--navy); color: #ffffff; font-size: 9.5pt; }

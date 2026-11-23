@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""플러그인 있음·없음 비교 실험.
+"""플러그인 있음, 없음 비교 실험.
 
 같은 작성 요청을 두 조건으로 실행하고, 생성된 파일을 kolint로 검사한다.
 사용자 전역 설정(~/.claude/CLAUDE.md, 설치 플러그인)은 --setting-sources project,local로 제외한다.

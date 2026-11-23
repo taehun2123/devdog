@@ -22,7 +22,7 @@ export function watchedFolders(config = loadConfig()) {
 }
 /**
  * 문서 수집
- * - 대상: 저장소별 human 폴더의 Markdown과 이미지·PDF. AGENTS·CLAUDE·숨김 파일·심볼릭 링크 제외
+ * - 대상: 저장소별 human 폴더의 Markdown과 이미지, PDF. AGENTS, CLAUDE, 숨김 파일, 심볼릭 링크 제외
  * - 주소: /<mount>/<human 기준 경로>. README.md는 index.html
  * - 링크: 수집한 문서는 사이트 주소, 그 외 파일은 GitHub 원본 커밋 주소로 변환
  * - 이전 주소: migration-map.json이 있으면 이전 경로를 새 주소로 연결
@@ -59,7 +59,7 @@ export function prepare() {
   assertUnique(entries);
   const mapFile = path.join(config.repositories[config.home].root, 'migration-map.json');
   if (fs.existsSync(mapFile)) {
-    // path_base "repository": { repository, from, to }. 이전 형식 "workspace": from·to가 "<저장소>/<경로>"
+    // path_base "repository": { repository, from, to }. 이전 형식 "workspace": from과 to가 "<저장소>/<경로>"
     for (const move of JSON.parse(fs.readFileSync(mapFile, 'utf8')).moves || []) {
       const from = move.repository ? `${move.repository}/${move.from}` : move.from;
       const to = move.repository ? `${move.repository}/${move.to}` : move.to;

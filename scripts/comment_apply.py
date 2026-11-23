@@ -216,7 +216,7 @@ def verify(rev=None):
         return subprocess.run(['git'] + args, capture_output=True, text=True,
                               encoding='utf-8', check=True).stdout
 
-    # HEAD와 비교해 staged·unstaged 변경을 모두 검사한다. 기본 git diff만 사용하면
+    # HEAD와 비교해 staged, unstaged 변경을 모두 검사한다. 기본 git diff만 사용하면
     # staged 변경이 누락되어 코드가 바뀌어도 통과할 수 있다.
     diff = git_output(['diff', '-U0', base, '--'])
     unsafe = []

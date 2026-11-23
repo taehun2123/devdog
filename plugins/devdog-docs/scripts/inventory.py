@@ -22,10 +22,10 @@ RULES = [
     # (kind, audience, English tokens, Korean tokens and patterns, reason)
     ('ai', 'ai', ['prompt', 'prompts', 'agent', 'agents', 'claude', 'copilot', 'cursor', 'cursorrules', 'llm',
                   'ai-guide', 'ai-rules', 'ai-instructions'],
-     ['프롬프트'], 'AI 지시·프롬프트 문서로 보이는 이름'),
+     ['프롬프트'], 'AI 지시, 프롬프트 문서로 보이는 이름'),
     ('archive', 'human', ['archive', 'legacy', 'deprecated', 'old', 'draft', 'report', 'retro', 'retrospective'],
      ['회의', '회고', '보고서', '초안', r'\d{4}-\d{2}-\d{2}', r'(?<!\d)\d{8}(?!\d)'],
-     '과거 기록·초안·날짜가 있는 보고서로 보이는 이름'),
+     '과거 기록, 초안, 날짜가 있는 보고서로 보이는 이름'),
     ('tutorials', 'human', ['tutorial', 'tutorials', 'getting-started', 'quickstart', 'quick-start', 'first-day',
                             'onboarding'],
      ['시작하기', '입문', '온보딩'], '처음 따라 하는 안내로 보이는 이름'),
@@ -34,7 +34,7 @@ RULES = [
      ['배포', '설치', '운영', '절차', '가이드', '릴리스'], '작업 절차 문서로 보이는 이름'),
     ('reference', 'human', ['api', 'reference', 'spec', 'specification', 'convention', 'conventions', 'schema',
                             'config', 'configuration', 'enum', 'errors', 'glossary', 'style'],
-     ['규칙', '명세', '용어', '컨벤션', '설정'], '규칙·값을 찾는 참조 문서로 보이는 이름'),
+     ['규칙', '명세', '용어', '컨벤션', '설정'], '규칙과 값을 찾는 참조 문서로 보이는 이름'),
 ]
 
 
@@ -59,7 +59,7 @@ def classify(rel, heading):
     for kind, audience, compiled, reason in RULE_PATTERNS:
         if compiled.search(haystack):
             return kind, audience, reason
-    return 'explanation', 'human', '해당 규칙 없음. 구조·배경 설명으로 분류'
+    return 'explanation', 'human', '해당 규칙 없음. 구조, 배경 설명으로 분류'
 
 
 def candidates(root, keep_dirs):
@@ -126,7 +126,7 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    # Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 경로·문구 출력 시 UnicodeEncodeError 방지
+    # Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 경로, 문구 출력 시 UnicodeEncodeError 방지
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.exit(main())
